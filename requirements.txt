@@ -1,0 +1,12 @@
+torch==1.4.0
+torchvision==0.5.0
+pytorch-lightning==0.7.1
+kornia==0.2.0
+opencv-python==4.1.2.30
+jupyter
+test-tube
+
+# for point cloud visualization
+plyfile
+open3d
+numba
