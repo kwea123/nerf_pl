@@ -1,6 +1,16 @@
 import torch
 from torchsearchsorted import searchsorted
 
+__all__ = ['render_rays'] # only render_rays is called outside
+
+"""
+Function dependencies: (-> means function calls)
+
+@render_rays -> @inference -> @batched_inference
+
+@render_rays -> @sample_pdf if there is fine model
+"""
+
 def batched_inference(model, inputs, chunk=1024*32):
     """
     Perform model inference by cutting input to smaller chunks due to memory issue.

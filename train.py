@@ -10,7 +10,7 @@ from datasets import dataset_dict
 from models.nerf import Embedding, NeRF
 from models.rendering import render_rays
 
-# optimizer, scheduler
+# optimizer, scheduler, visualization
 from utils import *
 
 # losses
@@ -142,9 +142,9 @@ class NeRFSystem(LightningModule):
     
         if batch_nb == 0:
             W, H = self.hparams.img_wh
-            img_fine = results['rgb_fine'].view(H, W, 3)
+            img_fine = results['rgb_fine'].view(H, W, 3).cpu()
             img_fine = img_fine.permute(2, 0, 1) # (3, H, W)
-            img_gt = rgbs.view(H, W, 3).permute(2, 0, 1) # (3, H, W)
+            img_gt = rgbs.view(H, W, 3).permute(2, 0, 1).cpu() # (3, H, W)
             depth = visualize_depth(results['depth_fine'].view(H, W)) # (3, H, W)
             stack = torch.stack([img_gt, img_fine, depth]) # (3, 3, H, W)
             self.logger.experiment.add_images('val/GT_pred_depth',
@@ -193,7 +193,7 @@ if __name__ == '__main__':
                       progress_bar_refresh_rate=1,
                       gpus=hparams.num_gpus,
                       distributed_backend='ddp' if hparams.num_gpus>1 else None,
-                      num_sanity_val_steps=0,
+                      num_sanity_val_steps=0 if hparams.num_gpus>1 else 1,
                       benchmark=True,
                       profiler=True)
 
