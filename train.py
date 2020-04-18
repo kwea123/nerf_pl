@@ -194,6 +194,7 @@ if __name__ == '__main__':
                       gpus=hparams.num_gpus,
                       distributed_backend='ddp' if hparams.num_gpus>1 else None,
                       num_sanity_val_steps=0,
-                      benchmark=True)
+                      benchmark=True,
+                      profiler=True)
 
     trainer.fit(system)

@@ -27,7 +27,7 @@ def get_opts():
                         choices=['mse'],
                         help='loss to use')
 
-    parser.add_argument('--batch_size', type=int, default=4096,
+    parser.add_argument('--batch_size', type=int, default=1024,
                         help='batch size')
     parser.add_argument('--chunk', type=int, default=32*1024,
                         help='chunk size to split the input to avoid OOM')
@@ -41,7 +41,7 @@ def get_opts():
     parser.add_argument('--prefixes_to_ignore', nargs='+', type=str, default=['loss'],
                         help='the prefixes to ignore in the checkpoint state dict')
 
-    parser.add_argument('--optimizer', type=str, default='sgd',
+    parser.add_argument('--optimizer', type=str, default='adam',
                         help='optimizer type',
                         choices=['sgd', 'adam', 'radam', 'ranger'])
     parser.add_argument('--lr', type=float, default=5e-4,
