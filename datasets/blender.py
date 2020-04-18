@@ -17,6 +17,7 @@ class BlenderDataset(Dataset):
         self.define_transforms()
 
         self.read_meta()
+        self.white_back = True
 
     def read_meta(self):
         with open(os.path.join(self.root_dir,
@@ -46,7 +47,7 @@ class BlenderDataset(Dataset):
                 img = img.resize(self.img_wh)
                 img = self.transform(img) # (4, H, W)
                 img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
-                img = img[:, :3] # (H*W, 3) RGB
+                img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # blend A to RGB
                 self.all_rgbs += [img]
                 
                 rays_o, rays_d = get_rays(self.directions, c2w)
@@ -85,7 +86,7 @@ class BlenderDataset(Dataset):
             img = img.resize(self.img_wh, Image.BILINEAR)
             img = self.transform(img) # (4, H, W)
             img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
-            img = img[:, :3] # (H*W, 3) RGB
+            img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # blend A to RGB
 
             rays_o, rays_d = get_rays(self.directions, c2w)
 

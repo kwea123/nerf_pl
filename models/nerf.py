@@ -4,7 +4,7 @@ from torch import nn
 class Embedding(nn.Module):
     def __init__(self, in_channels, N_freqs, logscale=True):
         """
-        Defines a function that embeds x to (x, sin(2^k x), cos(2^k x), ...) as in the paper
+        Defines a function that embeds x to (x, sin(2^k x), cos(2^k x), ...)
         in_channels: number of input channels (3 for both xyz and direction)
         """
         super(Embedding, self).__init__()

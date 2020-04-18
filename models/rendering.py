@@ -82,7 +82,8 @@ def render_rays(models,
                 perturb=0,
                 noise_std=1,
                 N_importance=0,
-                chunk=1024*32
+                chunk=1024*32,
+                white_back=False
                 ):
     """
     Render rays by computing the output of @model applied on @rays
@@ -97,6 +98,7 @@ def render_rays(models,
         noise_std: factor to perturb the model's prediction of sigma
         N_importance: number of fine samples per ray
         chunk: the chunk size in @batchify
+        white_back: whether the background is white (dataset dependent)
 
     Outputs:
         result: dictionary containing final rgb and depth maps for coarse and fine models
@@ -159,7 +161,8 @@ def render_rays(models,
 
         # compute final weighted outputs
         rgb_final = torch.sum(weights.unsqueeze(-1)*rgbs, -2) # (N_rays, 3)
-        # rgb_final = rgb_final + 1-weights_sum.unsqueeze(-1)
+        if white_back:
+            rgb_final = rgb_final + 1-weights_sum.unsqueeze(-1)
         depth_final = torch.sum(weights*z_vals, -1) # (N_rays)
 
         return rgb_final, depth_final, weights
@@ -226,4 +229,3 @@ def render_rays(models,
         result['opacity_fine'] = weights_fine.sum(1)
 
     return result
-

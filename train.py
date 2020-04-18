@@ -76,7 +76,8 @@ class NeRFSystem(LightningModule):
                             self.hparams.perturb,
                             self.hparams.noise_std,
                             self.hparams.N_importance,
-                            self.hparams.chunk) # chunk size is effective in val mode
+                            self.hparams.chunk, # chunk size is effective in val mode
+                            self.train_dataset.white_back)
 
             for k, v in rendered_ray_chunks.items():
                 results[k] += [v]
