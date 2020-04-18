@@ -42,14 +42,13 @@ class BlenderDataset(Dataset):
                 img = img.resize(self.img_wh)
                 img = self.transform(img) # (4, H, W)
                 img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
-                img = img[:, :3] # (H*W, 3) RGB
-                # img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # (H*W, 3) composite alpha to RGB
+                # img = img[:, :3] # (H*W, 3) RGB
+                img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # (H*W, 3) composite alpha to RGB
                 self.all_rgbs += [img]
                 
-                rays_o, rays_d = get_rays(self.img_wh[1], self.img_wh[0],
-                                          self.focal, c2w)
-                rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0], self.focal,
-                                              1.0, rays_o, rays_d)
+                rays_o, rays_d = get_rays(self.img_wh[1], self.img_wh[0], self.focal, c2w)
+                # rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0], self.focal,
+                #                               1.0, rays_o, rays_d)
 
                 self.all_rays += [torch.cat([rays_o, rays_d, 
                                              self.near*torch.ones_like(rays_o[:, :1]),
@@ -77,16 +76,15 @@ class BlenderDataset(Dataset):
             c2w = torch.FloatTensor(frame['transform_matrix'])
 
             img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
-            img = img.resize(self.img_wh)
+            img = img.resize(self.img_wh, Image.BILINEAR)
             img = self.transform(img) # (4, H, W)
             img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
-            img = img[:, :3] # (H*W, 3) RGB
-            # img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # (H*W, 3) composite alpha to RGB
+            # img = img[:, :3] # (H*W, 3) RGB
+            img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # (H*W, 3) composite alpha to RGB
 
-            rays_o, rays_d = get_rays(self.img_wh[1], self.img_wh[0],
-                                      self.focal, c2w)
-            rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0], self.focal,
-                                          1.0, rays_o, rays_d)
+            rays_o, rays_d = get_rays(self.img_wh[1], self.img_wh[0], self.focal, c2w)
+            # rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0], self.focal,
+            #                               1.0, rays_o, rays_d)
 
             rays = torch.cat([rays_o, rays_d, 
                               self.near*torch.ones_like(rays_o[:, :1]),

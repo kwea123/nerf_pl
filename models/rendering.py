@@ -146,10 +146,11 @@ def render_rays(models,
             torch.cat([torch.ones_like(alphas[:, :1]), 1-alphas+1e-10], -1) # [1, a1, a2, ...]
         weights = \
             alphas * torch.cumprod(alphas_shifted, -1)[:, :-1] # (N_rays, N_samples_)
-        # weights_sum = weights.sum(1) # (N_rays), the accumulated opacity along the rays
+        weights_sum = weights.sum(1) # (N_rays), the accumulated opacity along the rays
 
         # compute final weighted outputs
         rgb_final = torch.sum(weights.unsqueeze(-1)*rgbs, -2) # (N_rays, 3)
+        rgb_final = rgb_final + 1-weights_sum.unsqueeze(-1)
         depth_final = torch.sum(weights*z_vals, -1) # (N_rays)
 
         return rgb_final, depth_final, weights

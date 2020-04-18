@@ -31,8 +31,8 @@ class NeRFSystem(LightningModule):
 
         self.loss = loss_dict[hparams.loss_type]()
 
-        self.embedding_xyz = Embedding(3, 10)
-        self.embedding_dir = Embedding(3, 4)
+        self.embedding_xyz = Embedding(3, 10) # 10 is the default number
+        self.embedding_dir = Embedding(3, 4) # 4 is the default number
         self.nerf_coarse = NeRF()
         self.models = [self.nerf_coarse]
         if hparams.N_importance > 0:
@@ -190,8 +190,6 @@ if __name__ == '__main__':
                       distributed_backend='ddp' if hparams.num_gpus>1 else None,
                       num_sanity_val_steps=0,
                       benchmark=True,
-                      precision=16 if hparams.use_amp else 32,
-                      profiler=True,
-                      amp_level='O1')
+                      profiler=True)
 
     trainer.fit(system)

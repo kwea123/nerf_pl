@@ -6,7 +6,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 from .warmup_scheduler import GradualWarmupScheduler
 
 def get_optimizer(hparams, models):
-    eps = 1e-7 if hparams.use_amp else 1e-8
+    eps = 1e-8
     parameters = []
     for model in models:
         parameters += list(model.parameters())
@@ -28,7 +28,7 @@ def get_optimizer(hparams, models):
     return optimizer
 
 def get_scheduler(hparams, optimizer):
-    eps = 1e-7 if hparams.use_amp else 1e-8
+    eps = 1e-8
     if hparams.lr_scheduler == 'steplr':
         scheduler = MultiStepLR(optimizer, milestones=hparams.decay_step, 
                                 gamma=hparams.decay_gamma)
