@@ -145,7 +145,7 @@ class NeRFSystem(LightningModule):
             img_fine = results['rgb_fine'].view(H, W, 3)
             img_fine = img_fine.permute(2, 0, 1) # (3, H, W)
             img_gt = rgbs.view(H, W, 3).permute(2, 0, 1) # (3, H, W)
-            depth = visualize_depth(results['depth_fine'].view(H, W))
+            depth = visualize_depth(results['depth_fine'].view(H, W)) # (3, H, W)
             stack = torch.stack([img_gt, img_fine, depth]) # (3, 3, H, W)
             self.logger.experiment.add_images('val/GT_pred_depth',
                                                stack, self.global_step)

@@ -31,7 +31,11 @@ class BlenderDataset(Dataset):
         # bounds, common for all scenes
         self.near = 2
         self.far = 6
-
+        
+        # ray directions for all pixels, same for all images (same H, W, focal)
+        self.directions = \
+            get_ray_directions(self.img_wh[1], self.img_wh[0], self.focal) # (H, W, 3)
+            
         if self.split == 'train': # create buffer of all rays and rgb data
             self.all_rays = []
             self.all_rgbs = []
@@ -45,7 +49,7 @@ class BlenderDataset(Dataset):
                 img = img[:, :3] # (H*W, 3) RGB
                 self.all_rgbs += [img]
                 
-                rays_o, rays_d = get_rays(self.img_wh[1], self.img_wh[0], self.focal, c2w)
+                rays_o, rays_d = get_rays(self.directions, c2w)
 
                 self.all_rays += [torch.cat([rays_o, rays_d, 
                                              self.near*torch.ones_like(rays_o[:, :1]),
@@ -83,7 +87,7 @@ class BlenderDataset(Dataset):
             img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
             img = img[:, :3] # (H*W, 3) RGB
 
-            rays_o, rays_d = get_rays(self.img_wh[1], self.img_wh[0], self.focal, c2w)
+            rays_o, rays_d = get_rays(self.directions, c2w)
 
             rays = torch.cat([rays_o, rays_d, 
                               self.near*torch.ones_like(rays_o[:, :1]),
