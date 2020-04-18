@@ -41,7 +41,6 @@ def sample_pdf(bins, weights, N_importance, det=False, eps=1e-5):
     cdf = torch.cat([torch.zeros_like(cdf[: ,:1]), cdf], -1)  # (N_rays, N_samples_+1) 
                                                                # padded to 0~1 inclusive
 
-    # Take uniform samples
     if det:
         u = torch.linspace(0, 1, N_importance, device=bins.device)
         u = u.expand(N_rays, N_importance)
@@ -150,7 +149,7 @@ def render_rays(models,
 
         # compute final weighted outputs
         rgb_final = torch.sum(weights.unsqueeze(-1)*rgbs, -2) # (N_rays, 3)
-        rgb_final = rgb_final + 1-weights_sum.unsqueeze(-1)
+        # rgb_final = rgb_final + 1-weights_sum.unsqueeze(-1)
         depth_final = torch.sum(weights*z_vals, -1) # (N_rays)
 
         return rgb_final, depth_final, weights
@@ -174,8 +173,8 @@ def render_rays(models,
         z_vals = 1/(1/near * (1-z_steps) + 1/far * z_steps)
 
     z_vals = z_vals.expand(N_rays, N_samples)
-
     z_vals_mid = 0.5 * (z_vals[: ,:-1] + z_vals[: ,1:]) # (N_rays, N_samples-1) interval mid points
+    
     if perturb > 0: # perturb sampling depths (z_vals)
         # get intervals between samples
         upper = torch.cat([z_vals_mid, z_vals[: ,-1:]], -1)
@@ -198,7 +197,8 @@ def render_rays(models,
 
     if N_importance > 0: # sample points for fine model
         z_vals_ = sample_pdf(z_vals_mid, weights_coarse[:, 1:-1],
-                             N_importance, det=(perturb==0)).detach() # TODO: has grad, but explain why need detach?
+                             N_importance, det=(perturb==0)).detach()
+                  # detach so that grad doesn't propogate to weights_coarse from here
 
         z_vals, _ = torch.sort(torch.cat([z_vals, z_vals_], -1), -1)
 

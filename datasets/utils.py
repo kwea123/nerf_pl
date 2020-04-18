@@ -39,6 +39,9 @@ def get_ndc_rays(H, W, focal, near, rays_o, rays_d):
     http://www.songho.ca/opengl/gl_projectionmatrix.html
     https://github.com/bmild/nerf/files/4451808/ndc_derivation.pdf
 
+    In practice, use NDC "if and only if" the scene is unbounded (has a large depth).
+    See https://github.com/bmild/nerf/issues/18
+
     Inputs:
         H, W, focal: image height, width and focal length
         near: (N_rays) or float, the depths of the near plane

@@ -33,24 +33,29 @@ class NeRFSystem(LightningModule):
 
         self.embedding_xyz = Embedding(3, 10) # 10 is the default number
         self.embedding_dir = Embedding(3, 4) # 4 is the default number
+        self.embeddings = [self.embedding_xyz, self.embedding_dir]
+
         self.nerf_coarse = NeRF()
         self.models = [self.nerf_coarse]
         if hparams.N_importance > 0:
             self.nerf_fine = NeRF()
             self.models += [self.nerf_fine]
-        self.embeddings = [self.embedding_xyz, self.embedding_dir]
 
-        # if num gpu is 1, print model structure and number of params
+        # if num gpu is 1, print number of model params
         if self.hparams.num_gpus == 1:
             for i, model in enumerate(self.models):
                 name = 'coarse' if i == 0 else 'fine'
                 print('number of %s model parameters : %.2f M' % 
                       (name, sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6))
         
-        # # load model if checkpoint path is provided
-        # if self.hparams.ckpt_path != '':
-        #     print('Load model from', self.hparams.ckpt_path)
-        #     load_ckpt(self.model, self.hparams.ckpt_path, self.hparams.prefixes_to_ignore)
+        # load model if checkpoint path is provided
+        if self.hparams.ckpt_path != '':
+            print('Load model from', self.hparams.ckpt_path)
+            load_ckpt(self.nerf_coarse, self.hparams.ckpt_path,
+                      '`nerf_coarse', self.hparams.prefixes_to_ignore)
+            if hparams.N_importance > 0:
+                load_ckpt(self.nerf_fine, self.hparams.ckpt_path,
+                          '`nerf_fine', self.hparams.prefixes_to_ignore)
 
     def decode_batch(self, batch):
         rays = batch['rays'] # (B, 8)
@@ -76,8 +81,8 @@ class NeRFSystem(LightningModule):
             for k, v in rendered_ray_chunks.items():
                 results[k] += [v]
 
-        for k in results:
-            results[k] = torch.cat(results[k], 0)
+        for k, v in results.items():
+            results[k] = torch.cat(v, 0)
         return results
 
     def prepare_data(self):
@@ -140,8 +145,9 @@ class NeRFSystem(LightningModule):
             img_fine = results['rgb_fine'].view(H, W, 3)
             img_fine = img_fine.permute(2, 0, 1) # (3, H, W)
             img_gt = rgbs.view(H, W, 3).permute(2, 0, 1) # (3, H, W)
-            stack = torch.stack([img_gt, img_fine]) # (2, 3, H, W)
-            self.logger.experiment.add_images('val/GT_pred',
+            depth = visualize_depth(results['depth_fine'].view(H, W))
+            stack = torch.stack([img_gt, img_fine, depth]) # (3, 3, H, W)
+            self.logger.experiment.add_images('val/GT_pred_depth',
                                                stack, self.global_step)
 
         if 'rgb_fine' in results:
@@ -159,8 +165,7 @@ class NeRFSystem(LightningModule):
         return {'progress_bar': {'val_loss': mean_loss,
                                  'val_psnr': mean_psnr},
                 'log': {'val/loss': mean_loss,
-                        'val/psnr': mean_psnr,
-                        }
+                        'val/psnr': mean_psnr}
                }
 
 
@@ -189,7 +194,6 @@ if __name__ == '__main__':
                       gpus=hparams.num_gpus,
                       distributed_backend='ddp' if hparams.num_gpus>1 else None,
                       num_sanity_val_steps=0,
-                      benchmark=True,
-                      profiler=True)
+                      benchmark=True)
 
     trainer.fit(system)

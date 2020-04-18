@@ -46,8 +46,8 @@ class NeRF(nn.Module):
         """
         D: number of layers for density (sigma) encoder
         W: number of hidden units in each layer
-        in_channels_xyz: number of input channels for xyz (3*10*2+3=63 by default)
-        in_channels_dir: number of input channels for direction (3*4*2+3=27 by default)
+        in_channels_xyz: number of input channels for xyz (3+3*10*2=63 by default)
+        in_channels_dir: number of input channels for direction (3+3*4*2=27 by default)
         skips: add skip connection in the Dth layer
         """
         super(NeRF, self).__init__()
@@ -57,7 +57,7 @@ class NeRF(nn.Module):
         self.in_channels_dir = in_channels_dir
         self.skips = skips
 
-        # define xyz encoding layers
+        # xyz encoding layers
         for i in range(D):
             if i == 0:
                 layer = nn.Linear(in_channels_xyz, W)

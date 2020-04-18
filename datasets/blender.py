@@ -42,13 +42,10 @@ class BlenderDataset(Dataset):
                 img = img.resize(self.img_wh)
                 img = self.transform(img) # (4, H, W)
                 img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
-                # img = img[:, :3] # (H*W, 3) RGB
-                img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # (H*W, 3) composite alpha to RGB
+                img = img[:, :3] # (H*W, 3) RGB
                 self.all_rgbs += [img]
                 
                 rays_o, rays_d = get_rays(self.img_wh[1], self.img_wh[0], self.focal, c2w)
-                # rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0], self.focal,
-                #                               1.0, rays_o, rays_d)
 
                 self.all_rays += [torch.cat([rays_o, rays_d, 
                                              self.near*torch.ones_like(rays_o[:, :1]),
@@ -64,7 +61,9 @@ class BlenderDataset(Dataset):
     def __len__(self):
         if self.split == 'train':
             return len(self.all_rays)
-        return 1 # only validate one image each epoch
+        if self.split == 'val':
+            return 1 # only validate one image each epoch
+        return len(self.meta['frames'])
 
     def __getitem__(self, idx):
         if self.split == 'train': # use data in the buffers
@@ -72,19 +71,19 @@ class BlenderDataset(Dataset):
                       'rgbs': self.all_rgbs[idx]}
 
         else: # create data for each image separately
-            frame = np.random.choice(self.meta['frames'], 1)[0] # randomly sample an image
+            if self.split == 'val':
+                frame = np.random.choice(self.meta['frames'], 1)[0] # randomly sample an image
+            else: # test mode
+                frame = self.meta['frames'][idx]
             c2w = torch.FloatTensor(frame['transform_matrix'])
 
             img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
             img = img.resize(self.img_wh, Image.BILINEAR)
             img = self.transform(img) # (4, H, W)
             img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
-            # img = img[:, :3] # (H*W, 3) RGB
-            img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # (H*W, 3) composite alpha to RGB
+            img = img[:, :3] # (H*W, 3) RGB
 
             rays_o, rays_d = get_rays(self.img_wh[1], self.img_wh[0], self.focal, c2w)
-            # rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0], self.focal,
-            #                               1.0, rays_o, rays_d)
 
             rays = torch.cat([rays_o, rays_d, 
                               self.near*torch.ones_like(rays_o[:, :1]),
