@@ -134,12 +134,11 @@ class NeRFSystem(LightningModule):
                }
 
     def validation_step(self, batch, batch_nb):
-        log = {}
         rays, rgbs = self.decode_batch(batch)
         rays = rays.squeeze() # (H*W, 3)
         rgbs = rgbs.squeeze() # (H*W, 3)
         results = self(rays)
-        log['val_loss'] = self.loss(results, rgbs)
+        log = {'val_loss': self.loss(results, rgbs)}
     
         if batch_nb == 0:
             W, H = self.hparams.img_wh
