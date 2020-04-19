@@ -48,7 +48,7 @@ def get_opts():
                         help='learning rate')
     parser.add_argument('--momentum', type=float, default=0.9,
                         help='learning rate momentum')
-    parser.add_argument('--weight_decay', type=float, default=1e-5,
+    parser.add_argument('--weight_decay', type=float, default=0,
                         help='weight decay')
     parser.add_argument('--lr_scheduler', type=str, default='steplr',
                         help='scheduler type',

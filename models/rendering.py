@@ -104,7 +104,7 @@ def render_rays(models,
         result: dictionary containing final rgb and depth maps for coarse and fine models
     """
 
-    def inference(model, embedding_xyz, embedding_dir, xyz_, dir_):
+    def inference(model, embedding_xyz, embedding_dir, xyz_, dir_, z_vals):
         """
         Helper function that performs model inference.
 
@@ -117,6 +117,7 @@ def render_rays(models,
                              = N_samples for coarse model
                              = N_samples+N_importance for fine model
             dir_: (N_rays, 3) directions (not normalized)
+            z_vals: (N_rays, N_samples_) depths of the sampled positions
 
         Outputs:
             rgb_final: (N_rays, 3) the final rgb image
@@ -130,7 +131,8 @@ def render_rays(models,
         xyz_embedded = embedding_xyz(xyz_) # (N_rays*N_samples_, embed_xyz_channels)
         dir_normalized = dir_/torch.norm(dir_, dim=1, keepdim=True) # (N_rays, 3)
         dir_embedded = embedding_dir(dir_normalized) # (N_rays, embed_dir_channels)
-        dir_embedded = dir_embedded.repeat(N_samples_, 1) # (N_rays*N_samples_, embed_dir_channels)
+        dir_embedded = torch.repeat_interleave(dir_embedded, repeats=N_samples_, dim=0)
+                       # (N_rays*N_samples_, embed_dir_channels)
 
         xyzdir_embedded = torch.cat([xyz_embedded, dir_embedded], 1)
 
@@ -161,9 +163,10 @@ def render_rays(models,
 
         # compute final weighted outputs
         rgb_final = torch.sum(weights.unsqueeze(-1)*rgbs, -2) # (N_rays, 3)
+        depth_final = torch.sum(weights*z_vals, -1) # (N_rays)
+
         if white_back:
             rgb_final = rgb_final + 1-weights_sum.unsqueeze(-1)
-        depth_final = torch.sum(weights*z_vals, -1) # (N_rays)
 
         return rgb_final, depth_final, weights
 
@@ -186,14 +189,14 @@ def render_rays(models,
         z_vals = 1/(1/near * (1-z_steps) + 1/far * z_steps)
 
     z_vals = z_vals.expand(N_rays, N_samples)
-    z_vals_mid = 0.5 * (z_vals[: ,:-1] + z_vals[: ,1:]) # (N_rays, N_samples-1) interval mid points
     
     if perturb > 0: # perturb sampling depths (z_vals)
+        z_vals_mid = 0.5 * (z_vals[: ,:-1] + z_vals[: ,1:]) # (N_rays, N_samples-1) interval mid points
         # get intervals between samples
         upper = torch.cat([z_vals_mid, z_vals[: ,-1:]], -1)
         lower = torch.cat([z_vals[: ,:1], z_vals_mid], -1)
         
-        perturb_rand = torch.rand(z_vals.shape, device=rays.device)
+        perturb_rand = perturb * torch.rand(z_vals.shape, device=rays.device)
         z_vals = lower + (upper - lower) * perturb_rand
 
     xyz_coarse_sampled = rays_o.unsqueeze(1) + \
@@ -201,7 +204,7 @@ def render_rays(models,
 
     rgb_coarse, depth_coarse, weights_coarse = \
         inference(model_coarse, embedding_xyz, embedding_dir,
-                  xyz_coarse_sampled, rays_d)
+                  xyz_coarse_sampled, rays_d, z_vals)
 
     result = {'rgb_coarse': rgb_coarse,
               'depth_coarse': depth_coarse,
@@ -209,6 +212,7 @@ def render_rays(models,
               }
 
     if N_importance > 0: # sample points for fine model
+        z_vals_mid = 0.5 * (z_vals[: ,:-1] + z_vals[: ,1:]) # (N_rays, N_samples-1) interval mid points
         z_vals_ = sample_pdf(z_vals_mid, weights_coarse[:, 1:-1],
                              N_importance, det=(perturb==0)).detach()
                   # detach so that grad doesn't propogate to weights_coarse from here
@@ -222,7 +226,9 @@ def render_rays(models,
         model_fine = models[1]
         rgb_fine, depth_fine, weights_fine = \
             inference(model_fine, embedding_xyz, embedding_dir,
-                      xyz_fine_sampled, rays_d)
+                      xyz_fine_sampled, rays_d, z_vals)
+
+        # print('rgb', rgb_fine[:5])
 
         result['rgb_fine'] = rgb_fine
         result['depth_fine'] = depth_fine

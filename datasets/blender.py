@@ -30,8 +30,8 @@ class BlenderDataset(Dataset):
         self.focal *= self.img_wh[0]/800 # modify focal length to match size self.img_wh
 
         # bounds, common for all scenes
-        self.near = 2
-        self.far = 6
+        self.near = 2.0
+        self.far = 6.0
         
         # ray directions for all pixels, same for all images (same H, W, focal)
         self.directions = \
@@ -40,34 +40,43 @@ class BlenderDataset(Dataset):
         if self.split == 'train': # create buffer of all rays and rgb data
             self.all_rays = []
             self.all_rgbs = []
+            self.valid_masks = []
             for frame in self.meta['frames']:
-                c2w = torch.FloatTensor(frame['transform_matrix'])
+                c2w = torch.FloatTensor(frame['transform_matrix'])[:3, :4]
 
                 img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
                 img = img.resize(self.img_wh)
                 img = self.transform(img) # (4, H, W)
+                valid_mask = (img[-1]>0).flatten() # (H*W) valid color area
+                self.valid_masks += [valid_mask]
                 img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
                 img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # blend A to RGB
                 self.all_rgbs += [img]
                 
-                rays_o, rays_d = get_rays(self.directions, c2w)
+                rays_o, rays_d = get_rays(self.directions, c2w) # both (H*W, 3)
 
                 self.all_rays += [torch.cat([rays_o, rays_d, 
                                              self.near*torch.ones_like(rays_o[:, :1]),
                                              self.far*torch.ones_like(rays_o[:, :1])],
                                              1)] # (H*W, 8)
 
-            self.all_rays = torch.cat(self.all_rays, 0) # (H*W*len(self.meta['frames]), 3)
-            self.all_rgbs = torch.cat(self.all_rgbs, 0) # (H*W*len(self.meta['frames]), 3)
+            self.all_rays = torch.cat(self.all_rays, 0) # (len(self.meta['frames])*H*W, 3)
+            self.all_rgbs = torch.cat(self.all_rgbs, 0) # (len(self.meta['frames])*H*W, 3)
+            self.valid_masks = torch.cat(self.valid_masks, 0) # (len(self.meta['frames])*H*W)
 
     def define_transforms(self):
         self.transform = T.ToTensor()
+
+    def reduce_to_valid(self):
+        """Reduce the data to valid data only."""
+        self.all_rays = self.all_rays[self.valid_masks]
+        self.all_rgbs = self.all_rgbs[self.valid_masks]
 
     def __len__(self):
         if self.split == 'train':
             return len(self.all_rays)
         if self.split == 'val':
-            return 1 # only validate one image each epoch
+            return 1 # only validate one image
         return len(self.meta['frames'])
 
     def __getitem__(self, idx):
@@ -76,15 +85,13 @@ class BlenderDataset(Dataset):
                       'rgbs': self.all_rgbs[idx]}
 
         else: # create data for each image separately
-            if self.split == 'val':
-                frame = np.random.choice(self.meta['frames'], 1)[0] # randomly sample an image
-            else: # test mode
-                frame = self.meta['frames'][idx]
-            c2w = torch.FloatTensor(frame['transform_matrix'])
+            frame = self.meta['frames'][idx]
+            c2w = torch.FloatTensor(frame['transform_matrix'])[:3, :4]
 
             img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
-            img = img.resize(self.img_wh, Image.BILINEAR)
+            img = img.resize(self.img_wh, Image.LANCZOS)
             img = self.transform(img) # (4, H, W)
+            valid_mask = (img[-1]>0).flatten() # (H*W) valid color area
             img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
             img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # blend A to RGB
 
@@ -96,6 +103,8 @@ class BlenderDataset(Dataset):
                               1) # (H*W, 8)
 
             sample = {'rays': rays,
-                      'rgbs': img}
+                      'rgbs': img,
+                      'c2w': c2w,
+                      'valid_mask': valid_mask}
 
         return sample

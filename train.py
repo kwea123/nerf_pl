@@ -52,10 +52,10 @@ class NeRFSystem(LightningModule):
         if self.hparams.ckpt_path != '':
             print('Load model from', self.hparams.ckpt_path)
             load_ckpt(self.nerf_coarse, self.hparams.ckpt_path,
-                      '`nerf_coarse', self.hparams.prefixes_to_ignore)
+                      'nerf_coarse', self.hparams.prefixes_to_ignore)
             if hparams.N_importance > 0:
                 load_ckpt(self.nerf_fine, self.hparams.ckpt_path,
-                          '`nerf_fine', self.hparams.prefixes_to_ignore)
+                          'nerf_fine', self.hparams.prefixes_to_ignore)
 
     def decode_batch(self, batch):
         rays = batch['rays'] # (B, 8)
