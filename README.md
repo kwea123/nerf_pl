@@ -3,6 +3,8 @@ Unofficial implementation of [NeRF](https://arxiv.org/pdf/2003.08934.pdf) (Neura
 
 Official implementation: [nerf](https://github.com/bmild/nerf)
 
+Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/nerf-pytorch)
+
 # Installation
 
 ## Hardware
@@ -48,6 +50,17 @@ See [opt.py](opt.py) for all configurations.
 ### Pretrained model and log
 Download the pretrained model and training log in [release](https://github.com/kwea123/nerf_pl/releases).
 
+### Comparison with other repos
+
+|           | GPU mem in GB <br> (train) | Speed (1 step) |
+| :---:     |  :---:     | :---:   | 
+| [Original](https://github.com/bmild/nerf)  |  8.5 | 0.177s |
+| [Ref pytorch](https://github.com/yenchenlin/nerf-pytorch)  |  6.0 | 0.147s |
+| This repo | 3.2 | 0.12s |
+
+The speed is measure on 1 RTX2080Ti. Detailed profile can be found in [release](https://github.com/kwea123/nerf_pl/releases).
+Training memory is largely reduced, since the original repo loads the whole data to GPU at the beginning, while we only pass batches to GPU every step.
+
 ## Notes on difference with the original repo
 
 The learning rate decay in the original repo is **by step**, which means it decreases every step, here I use learning rate decay **by epoch**, which means it changes only at the end of 1 epoch.
@@ -55,3 +68,7 @@ The learning rate decay in the original repo is **by step**, which means it decr
 # Testing
 
 See [test.ipynb](test.ipynb) for a simple view synthesis and depth prediction on 1 image.
+
+# TODO
+[ ] Train on LLFF dataset
+[ ] Render spiral/360 path
