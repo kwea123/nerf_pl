@@ -160,6 +160,7 @@ def render_rays(models,
         weights = \
             alphas * torch.cumprod(alphas_shifted, -1)[:, :-1] # (N_rays, N_samples_)
         weights_sum = weights.sum(1) # (N_rays), the accumulated opacity along the rays
+                                     # equals "1 - (1-a1)(1-a2)...(1-an)" mathematically
 
         # compute final weighted outputs
         rgb_final = torch.sum(weights.unsqueeze(-1)*rgbs, -2) # (N_rays, 3)
