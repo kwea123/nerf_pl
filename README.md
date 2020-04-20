@@ -75,7 +75,14 @@ The learning rate decay in the original repo is **by step**, which means it decr
 
 See [test.ipynb](test.ipynb) for a simple view synthesis and depth prediction on 1 image.
 
-Use [eval.py](eval.py) to create the whole sequence of moving views (to be updated).
+Use [eval.py](eval.py) to create the whole sequence of moving views.
+E.g.
+```
+python eval.py \
+   --root_dir $BLENDER \
+   --dataset_name blender --scene_name lego \
+   --img_wh 400 400 --N_importance 64 --ckpt_path $CKPT_PATH
+```
 
 Example of lego scene using pretrained model:
 
