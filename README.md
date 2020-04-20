@@ -5,6 +5,10 @@ Official implementation: [nerf](https://github.com/bmild/nerf)
 
 Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/nerf-pytorch)
 
+## Features
+
+* Multi-gpu training: Training on 8 GPUs finishes within 1 hour for lego!
+
 # Installation
 
 ## Hardware
@@ -14,11 +18,11 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 
 ## Software
 
-* Clone this repo by `git clone --recursive https://github.com/kwea123/nerf_pl`.
+* Clone this repo by `git clone --recursive https://github.com/kwea123/nerf_pl`
 * Python 3.8 (installation via [anaconda](https://www.anaconda.com/distribution/) is recommended, use `conda create -n nerf_pl python=3.8` to create a conda environment and activate it by `conda activate nerf_pl`)
 * Python libraries
-    * Install core requirements by `pip install -r requirements.txt`.
-    * Install `torchsearchsorted` by `cd torchsearchsorted` then `pip install .`.
+    * Install core requirements by `pip install -r requirements.txt`
+    * Install `torchsearchsorted` by `cd torchsearchsorted` then `pip install .`
     
 # Training
 
@@ -78,6 +82,5 @@ Example of lego scene using pretrained model:
 ![](assets/lego.gif)
 
 # TODO
-- [ ] Test multi GPU (already supported, just need to test)
 - [ ] Train on LLFF dataset
 - [ ] Render spiral/360 path
