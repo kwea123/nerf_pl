@@ -83,6 +83,7 @@ python eval.py \
    --dataset_name blender --scene_name lego \
    --img_wh 400 400 --N_importance 64 --ckpt_path $CKPT_PATH
 ```
+It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
 Example of lego scene using pretrained model:
 
