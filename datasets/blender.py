@@ -76,7 +76,7 @@ class BlenderDataset(Dataset):
         if self.split == 'train':
             return len(self.all_rays)
         if self.split == 'val':
-            return 1 # only validate one image
+            return 8 # only validate 8 images (to support <=8 gpus)
         return len(self.meta['frames'])
 
     def __getitem__(self, idx):
