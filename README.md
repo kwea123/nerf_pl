@@ -15,7 +15,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 ## Software
 
 * Clone this repo by `git clone --recursive https://github.com/kwea123/nerf_pl`.
-* Python>=3.6.1 (installation via [anaconda](https://www.anaconda.com/distribution/) is recommended, use `conda create -n nerf_pl python=3.6` to create a conda environment and activate it by `conda activate nerf_pl`)
+* Python 3.8 (installation via [anaconda](https://www.anaconda.com/distribution/) is recommended, use `conda create -n nerf_pl python=3.8` to create a conda environment and activate it by `conda activate nerf_pl`)
 * Python libraries
     * Install core requirements by `pip install -r requirements.txt`.
     * Install `torchsearchsorted` by `cd torchsearchsorted` then `pip install .`.
