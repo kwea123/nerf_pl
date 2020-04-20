@@ -5,7 +5,7 @@ def get_opts():
 
     parser.add_argument('--root_dir', type=str,
                         default='/home/ubuntu/data/nerf_example_data/nerf_synthetic/lego',
-                        help='root directory of dtu dataset')
+                        help='root directory of dataset')
     parser.add_argument('--dataset_name', type=str, default='blender',
                         choices=['blender'],
                         help='which dataset to train/val')
