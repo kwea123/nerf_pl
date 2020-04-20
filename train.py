@@ -41,13 +41,6 @@ class NeRFSystem(LightningModule):
             self.nerf_fine = NeRF()
             self.models += [self.nerf_fine]
 
-        # if num gpu is 1, print number of model params
-        if self.hparams.num_gpus == 1:
-            for i, model in enumerate(self.models):
-                name = 'coarse' if i == 0 else 'fine'
-                print('number of %s model parameters : %.2f M' % 
-                      (name, sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6))
-        
         # load model if checkpoint path is provided
         if self.hparams.ckpt_path != '':
             print('Load model from', self.hparams.ckpt_path)

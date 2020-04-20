@@ -91,13 +91,13 @@ def render_rays(models,
     Inputs:
         models: list of NeRF models (coarse and fine) defined in nerf.py
         embeddings: list of embedding models of origin and direction defined in nerf.py
-        rays: (N_rays, 3+3+2), ray origins, directions in NDC and near, far depth bounds
+        rays: (N_rays, 3+3+2), ray origins, directions and near, far depth bounds
         N_samples: number of coarse samples per ray
         use_disp: whether to sample in disparity space (inverse depth)
         perturb: factor to perturb the sampling position on the ray (for coarse model only)
         noise_std: factor to perturb the model's prediction of sigma
         N_importance: number of fine samples per ray
-        chunk: the chunk size in @batchify
+        chunk: the chunk size in @batched_inference
         white_back: whether the background is white (dataset dependent)
 
     Outputs:
