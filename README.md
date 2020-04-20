@@ -71,6 +71,12 @@ The learning rate decay in the original repo is **by step**, which means it decr
 
 See [test.ipynb](test.ipynb) for a simple view synthesis and depth prediction on 1 image.
 
+Use [eval.py](eval.py) to create the whole sequence of moving views (to be updated).
+
+Example of lego scene using pretrained model:
+
+![](assets/lego.gif)
+
 # TODO
 - [ ] Test multi GPU (already supported, just need to test)
 - [ ] Train on LLFF dataset
