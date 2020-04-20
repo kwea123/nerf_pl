@@ -7,7 +7,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 
 ## Features
 
-* Multi-gpu training: Training on 8 GPUs finishes within 1 hour for lego!
+* Multi-gpu training: Training on 8 GPUs finishes within 1 hour for the synthetic dataset!
 
 # Installation
 
