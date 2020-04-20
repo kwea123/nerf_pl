@@ -72,5 +72,6 @@ The learning rate decay in the original repo is **by step**, which means it decr
 See [test.ipynb](test.ipynb) for a simple view synthesis and depth prediction on 1 image.
 
 # TODO
+- [ ] Test multi GPU (already supported, just need to test)
 - [ ] Train on LLFF dataset
 - [ ] Render spiral/360 path
