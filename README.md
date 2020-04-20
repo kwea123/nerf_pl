@@ -10,13 +10,15 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 ## Hardware
 
 * OS: Ubuntu 18.04
-* NVIDIA GPU (tested with 1 RTX2080Ti)
+* NVIDIA GPU with **CUDA>=10.1** (tested with 1 RTX2080Ti)
 
 ## Software
 
+* Clone this repo by `git clone --recursive https://github.com/kwea123/nerf_pl`.
 * Python>=3.6.1 (installation via [anaconda](https://www.anaconda.com/distribution/) is recommended, use `conda create -n nerf_pl python=3.6` to create a conda environment and activate it by `conda activate nerf_pl`)
 * Python libraries
     * Install core requirements by `pip install -r requirements.txt`.
+    * Install `torchsearchsorted` by `cd torchsearchsorted` then `pip install .`.
     
 # Training
 
