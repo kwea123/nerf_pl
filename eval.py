@@ -118,4 +118,6 @@ if __name__ == "__main__":
         
         imageio.imwrite(os.path.join(dir_name, f'{i:03d}.png'), img_pred)
 
+    mean_psnr = np.mean(psnrs)
+    print(f'Mean PSNR : {mean_psnr:.2f}')
     imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, fps=30)
