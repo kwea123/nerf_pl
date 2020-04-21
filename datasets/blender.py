@@ -45,7 +45,7 @@ class BlenderDataset(Dataset):
                 c2w = torch.FloatTensor(frame['transform_matrix'])[:3, :4]
 
                 img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
-                img = img.resize(self.img_wh)
+                img = img.resize(self.img_wh, Image.LANCZOS)
                 img = self.transform(img) # (4, H, W)
                 valid_mask = (img[-1]>0).flatten() # (H*W) valid color area
                 self.valid_masks += [valid_mask]
