@@ -8,6 +8,12 @@ from torchvision import transforms as T
 
 from .utils import *
 
+
+def normalize(v):
+        """Normalize a vector."""
+        return v/np.linalg.norm(v)
+
+
 def average_poses(poses):
     """
     Calculate the average pose, which is then used to center all poses
@@ -27,12 +33,6 @@ def average_poses(poses):
     Outputs:
         pose_avg: (3, 4) the average pose
     """
-
-
-    def normalize(v):
-        """Normalize a vector."""
-        return v/np.linalg.norm(v)
-
     # 1. Compute the center
     center = poses[..., 3].mean(0) # (3)
 
@@ -63,20 +63,57 @@ def center_poses(poses):
 
     Outputs:
         poses_centered: (N_images, 3, 4) the centered poses
+        pose_avg: (3, 4) the average pose
     """
 
-    poses_avg = average_poses(poses) # (3, 4)
-    poses_avg_homo = np.eye(4)
-    poses_avg_homo[:3] = poses_avg # convert to homogeneous coordinate for faster computation
-                                   # by simply adding 0, 0, 0, 1 as the last row
+    pose_avg = average_poses(poses) # (3, 4)
+    pose_avg_homo = np.eye(4)
+    pose_avg_homo[:3] = pose_avg # convert to homogeneous coordinate for faster computation
+                                 # by simply adding 0, 0, 0, 1 as the last row
     last_row = np.tile(np.array([0, 0, 0, 1]), (len(poses), 1, 1)) # (N_images, 1, 4)
     poses_homo = \
         np.concatenate([poses, last_row], 1) # (N_images, 4, 4) homogeneous coordinate
 
-    poses_centered = np.linalg.inv(poses_avg_homo) @ poses_homo # (N_images, 4, 4)
+    poses_centered = np.linalg.inv(pose_avg_homo) @ poses_homo # (N_images, 4, 4)
     poses_centered = poses_centered[:, :3] # (N_images, 3, 4)
 
-    return poses_centered
+    return poses_centered, pose_avg
+
+
+def create_spiral_poses(pose_avg, radii, focus_depth, n_poses=120):
+    """
+    Computes poses that follow a spiral path for rendering purpose.
+    See https://github.com/Fyusion/LLFF/issues/19
+    In particular, the path looks like:
+
+    Inputs:
+        pose_avg: (3, 4) the center of the spiral
+        radii: (3) radii of the spiral along each axis
+        focus_depth: float, the depth that the spiral poses look at
+        n_poses: int, number of poses to create along the path
+
+    Outputs:
+        poses_spiral: (n_poses, 3, 4) the poses in the spiral path
+    """
+
+    poses_spiral = []
+    for t in np.linspace(0, 4*np.pi, n_poses+1)[:-1]: # rotate 4pi (2 rounds)
+        # the pose center is the coordinate on the spiral transformed into world coordinate
+        center = pose_avg[:, 3] + \
+            pose_avg[:, :3] @ (np.array([np.cos(t), -np.sin(t), -np.sin(0.5*t)]) * radii)
+
+        # the viewing z axis is the vector difference between @pose_center and
+        # the @focus_depth plane in world coordinate
+        z = normalize(center-pose_avg@np.array([0, 0, -focus_depth, 1]))
+        
+        # compute other axes as in @average_poses
+        y_ = pose_avg[:, 1] # (3)
+        x = normalize(np.cross(y_, z)) # (3)
+        y = np.cross(z, x) # (3)
+
+        poses_spiral += [np.stack([x, y, z, center], 1)] # (3, 4)
+
+    return np.stack(poses_spiral, 0) # (n_poses, 3, 4)
 
 
 class LLFFDataset(Dataset):
@@ -112,7 +149,7 @@ class LLFFDataset(Dataset):
         # See https://github.com/bmild/nerf/issues/34
         poses = np.concatenate([poses[..., 1:2], -poses[..., :1], poses[..., 2:4]], -1)
                 # (N_images, 3, 4) exclude H, W, focal
-        poses = center_poses(poses)
+        poses, pose_avg = center_poses(poses)
 
         # Step 3: correct scale so that the near plane is at a little more than 1.0
         # See https://github.com/bmild/nerf/issues/34
@@ -126,7 +163,7 @@ class LLFFDataset(Dataset):
             get_ray_directions(self.img_wh[1], self.img_wh[0], self.focal) # (H, W, 3)
             
         if self.split == 'train': # create buffer of all rays and rgb data
-                                  # use first N_images-1 to train, the LAST is val/test
+                                  # use first N_images-1 to train, the LAST is val
             self.all_rays = []
             self.all_rgbs = []
             for i, image_path in enumerate(image_paths[:-1]): # exclude the last image
@@ -154,9 +191,16 @@ class LLFFDataset(Dataset):
             self.all_rays = torch.cat(self.all_rays, 0) # ((N_images-1)*h*w, 3)
             self.all_rgbs = torch.cat(self.all_rgbs, 0) # ((N_images-1)*h*w, 3)
         
-        else:
-            self.c2w_test = poses[-1]
-            self.image_path_test = image_paths[-1]
+        elif self.split == 'val':
+            self.c2w_val = poses[-1]
+            self.image_path_val = image_paths[-1]
+
+        else: # for testing, we create a spiral rendering path
+            focus_depth = 3.5 # hardcoded, this is numerically close to the formula
+                              # given in the original repo. Mathematically if near=1
+                              # and far=infinity, then this number will converge to 4
+            radii = np.percentile(np.abs(poses[..., 3]), 90, axis=0) # (3), radii of the spiral
+            self.poses_spiral = create_spiral_poses(pose_avg, radii, focus_depth)
 
     def define_transforms(self):
         self.transform = T.ToTensor()
@@ -164,17 +208,19 @@ class LLFFDataset(Dataset):
     def __len__(self):
         if self.split == 'train':
             return len(self.all_rays)
-        return 1 # only validate/test one image
+        if self.split == 'val':
+            return 1 # only validate one image
+        return len(self.poses_spiral) # test on spiral path
 
     def __getitem__(self, idx):
         if self.split == 'train': # use data in the buffers
             sample = {'rays': self.all_rays[idx],
                       'rgbs': self.all_rgbs[idx]}
 
-        else: # create data for each image separately
-            c2w = torch.FloatTensor(self.c2w_test)
+        elif self.split == 'val':
+            c2w = torch.FloatTensor(self.c2w_val)
 
-            img = Image.open(self.image_path_test)
+            img = Image.open(self.image_path_val)
             img = img.resize(self.img_wh, Image.LANCZOS)
             img = self.transform(img) # (3, h, w)
             img = img.view(3, -1).permute(1, 0) # (h*w, 3)
@@ -182,15 +228,26 @@ class LLFFDataset(Dataset):
             rays_o, rays_d = get_rays(self.directions, c2w)
             rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
                                           self.focal, 1.0, rays_o, rays_d)
-
             rays = torch.cat([rays_o, rays_d, 
                               torch.zeros_like(rays_o[:, :1]),
                               torch.ones_like(rays_o[:, :1])],
-                              1) # (H*W, 8)
+                              1) # (h*w, 8)
 
             sample = {'rays': rays,
                       'rgbs': img,
-                      'c2w': c2w,
-                      }
+                      'c2w': c2w}
+        
+        else:
+            c2w = torch.FloatTensor(self.poses_spiral[idx])
+            rays_o, rays_d = get_rays(self.directions, c2w)
+            rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
+                                          self.focal, 1.0, rays_o, rays_d)
+            rays = torch.cat([rays_o, rays_d, 
+                              torch.zeros_like(rays_o[:, :1]),
+                              torch.ones_like(rays_o[:, :1])],
+                              1) # (h*w, 8)
+
+            sample = {'rays': rays,
+                      'c2w': c2w}
 
         return sample
