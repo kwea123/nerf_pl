@@ -85,7 +85,7 @@ python eval.py \
 ```
 It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
-Example of lego scene using pretrained model:
+Example of lego scene using pretrained model: (PSNR=31.39, paper=32.54)
 
 ![](assets/lego.gif)
 
