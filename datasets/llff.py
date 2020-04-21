@@ -139,7 +139,8 @@ class LLFFDataset(Dataset):
                 self.all_rgbs += [img]
                 
                 rays_o, rays_d = get_rays(self.directions, c2w) # both (h*w, 3)
-                rays_o, rays_d = get_ndc_rays(H, W, self.focal, 1.0, rays_o, rays_d)
+                rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
+                                              self.focal, 1.0, rays_o, rays_d)
                                  # near plane is always at 1.0
                                  # See https://github.com/bmild/nerf/issues/34
 
