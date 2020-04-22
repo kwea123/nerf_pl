@@ -51,8 +51,9 @@ python train.py \
    --exp_name exp
 ```
 
-These parameters are chosen to best mimic the training settings in the original repo.
-See [opt.py](opt.py) for all configurations.
+These parameters are chosen to best mimic the training settings in the original repo. See [opt.py](opt.py) for all configurations.
+
+You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
 
 ## LLFF
 
@@ -74,8 +75,9 @@ python train.py \
    --exp_name exp
 ```
 
-These parameters are chosen to best mimic the training settings in the original repo.
-See [opt.py](opt.py) for all configurations.
+These parameters are chosen to best mimic the training settings in the original repo. See [opt.py](opt.py) for all configurations.
+
+You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
 
 ## Pretrained models and logs
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
