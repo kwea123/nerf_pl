@@ -10,8 +10,8 @@ from .utils import *
 
 
 def normalize(v):
-        """Normalize a vector."""
-        return v/np.linalg.norm(v)
+    """Normalize a vector."""
+    return v/np.linalg.norm(v)
 
 
 def average_poses(poses):
