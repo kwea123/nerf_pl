@@ -105,13 +105,13 @@ if __name__ == "__main__":
                                     dataset.white_back)
 
         img_pred = results['rgb_fine'].view(h, w, 3).cpu().numpy()
-        img_pred = (img_pred*255).astype(np.uint8)
         
         depth_pred = results['depth_fine'].view(h, w).cpu().numpy()
         save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
 
-        imgs += [img_pred]
-        imageio.imwrite(os.path.join(dir_name, f'{i:03d}.png'), img_pred)
+        img_pred_ = (img_pred*255).astype(np.uint8)
+        imgs += [img_pred_]
+        imageio.imwrite(os.path.join(dir_name, f'{i:03d}.png'), img_pred_)
 
         if 'rgbs' in sample:
             rgbs = sample['rgbs']
