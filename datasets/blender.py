@@ -24,6 +24,7 @@ class BlenderDataset(Dataset):
                                f"transforms_{self.split}.json"), 'r') as f:
             self.meta = json.load(f)
 
+        w, h = self.img_wh
         self.focal = 0.5*800/np.tan(0.5*self.meta['camera_angle_x']) # original focal length
                                                                      # when W=800
 
@@ -35,42 +36,33 @@ class BlenderDataset(Dataset):
         
         # ray directions for all pixels, same for all images (same H, W, focal)
         self.directions = \
-            get_ray_directions(self.img_wh[1], self.img_wh[0], self.focal) # (H, W, 3)
+            get_ray_directions(h, w, self.focal) # (h, w, 3)
             
         if self.split == 'train': # create buffer of all rays and rgb data
             self.all_rays = []
             self.all_rgbs = []
-            self.valid_masks = []
             for frame in self.meta['frames']:
                 c2w = torch.FloatTensor(frame['transform_matrix'])[:3, :4]
 
                 img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
                 img = img.resize(self.img_wh, Image.LANCZOS)
-                img = self.transform(img) # (4, H, W)
-                valid_mask = (img[-1]>0).flatten() # (H*W) valid color area
-                self.valid_masks += [valid_mask]
-                img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
+                img = self.transform(img) # (4, h, w)
+                img = img.view(4, -1).permute(1, 0) # (h*w, 4) RGBA
                 img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # blend A to RGB
                 self.all_rgbs += [img]
                 
-                rays_o, rays_d = get_rays(self.directions, c2w) # both (H*W, 3)
+                rays_o, rays_d = get_rays(self.directions, c2w) # both (h*w, 3)
 
                 self.all_rays += [torch.cat([rays_o, rays_d, 
                                              self.near*torch.ones_like(rays_o[:, :1]),
                                              self.far*torch.ones_like(rays_o[:, :1])],
-                                             1)] # (H*W, 8)
+                                             1)] # (h*w, 8)
 
-            self.all_rays = torch.cat(self.all_rays, 0) # (len(self.meta['frames])*H*W, 3)
-            self.all_rgbs = torch.cat(self.all_rgbs, 0) # (len(self.meta['frames])*H*W, 3)
-            self.valid_masks = torch.cat(self.valid_masks, 0) # (len(self.meta['frames])*H*W)
+            self.all_rays = torch.cat(self.all_rays, 0) # (len(self.meta['frames])*h*w, 3)
+            self.all_rgbs = torch.cat(self.all_rgbs, 0) # (len(self.meta['frames])*h*w, 3)
 
     def define_transforms(self):
         self.transform = T.ToTensor()
-
-    def reduce_to_valid(self):
-        """Reduce the data to valid data only."""
-        self.all_rays = self.all_rays[self.valid_masks]
-        self.all_rgbs = self.all_rgbs[self.valid_masks]
 
     def __len__(self):
         if self.split == 'train':

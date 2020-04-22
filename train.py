@@ -113,7 +113,7 @@ class NeRFSystem(LightningModule):
         rays, rgbs = self.decode_batch(batch)
         results = self(rays)
         log['train/loss'] = loss = self.loss(results, rgbs)
-        
+
         with torch.no_grad():
             if 'rgb_fine' in results:
                 psnr_ = psnr(results['rgb_fine'], rgbs)
