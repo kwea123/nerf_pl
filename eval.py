@@ -22,8 +22,8 @@ def get_opts():
                         default='/home/ubuntu/data/nerf_example_data/nerf_synthetic/lego',
                         help='root directory of dataset')
     parser.add_argument('--dataset_name', type=str, default='blender',
-                        choices=['blender'],
-                        help='which dataset to train/val')
+                        choices=['blender', 'llff'],
+                        help='which dataset to validate')
     parser.add_argument('--scene_name', type=str, default='test',
                         help='scene name, used as output folder name')
     parser.add_argument('--img_wh', nargs="+", type=int, default=[800, 800],
@@ -40,12 +40,6 @@ def get_opts():
                         help='pretrained checkpoint path to load')
 
     return parser.parse_args()
-
-
-def decode_batch(batch):
-    rays = batch['rays'] # (B, 8)
-    rgbs = batch['rgbs'] # (B, 3)
-    return rays, rgbs
 
 
 @torch.no_grad()
@@ -79,11 +73,11 @@ def batched_inference(models, embeddings,
 
 
 if __name__ == "__main__":
-
     args = get_opts()
+    w, h = args.img_wh
 
     dataset = dataset_dict[args.dataset_name](args.root_dir, 'test',
-                                              img_wh=tuple(args.img_wh))
+                                              img_wh=(w, h))
 
     embedding_xyz = Embedding(3, 10)
     embedding_dir = Embedding(3, 4)
@@ -98,26 +92,40 @@ if __name__ == "__main__":
     embeddings = [embedding_xyz, embedding_dir]
 
     imgs = []
+    disps = []
     psnrs = []
     dir_name = f'results/{args.dataset_name}/{args.scene_name}'
     os.makedirs(dir_name, exist_ok=True)
 
     for i in tqdm(range(len(dataset))):
-        rays, rgbs = decode_batch(dataset[i])
-        rays = rays.cuda()
+        sample = dataset[i]
+        rays = sample['rays'].cuda()
         results = batched_inference(models, embeddings, rays,
                                     args.N_samples, args.N_importance, args.chunk,
                                     dataset.white_back)
 
-        img_gt = rgbs.view(400, 400, 3)
-        img_pred = results['rgb_fine'].view(400, 400, 3).cpu().numpy()
-        psnrs += [metrics.psnr(img_gt, img_pred).item()]
-        
+        img_pred = results['rgb_fine'].view(h, w, 3).cpu().numpy()
         img_pred = (img_pred*255).astype(np.uint8)
-        imgs += [img_pred]
         
-        imageio.imwrite(os.path.join(dir_name, f'{i:03d}.png'), img_pred)
+        depth_pred = results['depth_fine'].view(h, w).cpu().numpy()
+        depth_pred[depth_pred==0] = np.inf
+        disp_pred = 1/depth_pred
+        disp_pred = (disp_pred - disp_pred.min())/(disp_pred.max() - disp_pred.min())
+        disp_pred = (disp_pred*255).astype(np.uint8)
 
-    mean_psnr = np.mean(psnrs)
-    print(f'Mean PSNR : {mean_psnr:.2f}')
+        imgs += [img_pred]
+        disps += [disp_pred]
+        imageio.imwrite(os.path.join(dir_name, f'{i:03d}.png'), img_pred)
+        imageio.imwrite(os.path.join(dir_name, f'disp_{i:03d}.png'), disp_pred)
+
+        if 'rgbs' in sample:
+            rgbs = sample['rgbs']
+            img_gt = rgbs.view(h, w, 3)
+            psnrs += [metrics.psnr(img_gt, img_pred).item()]
+        
     imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, fps=30)
+    imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}_disp.gif'), disps, fps=30)
+    
+    if psnrs:
+        mean_psnr = np.mean(psnrs)
+        print(f'Mean PSNR : {mean_psnr:.2f}')
