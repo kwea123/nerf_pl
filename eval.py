@@ -13,6 +13,7 @@ from utils import load_ckpt
 import metrics
 
 from datasets import dataset_dict
+from datasets.depth_utils import *
 
 torch.backends.cudnn.benchmark = True
 
@@ -92,7 +93,6 @@ if __name__ == "__main__":
     embeddings = [embedding_xyz, embedding_dir]
 
     imgs = []
-    disps = []
     psnrs = []
     dir_name = f'results/{args.dataset_name}/{args.scene_name}'
     os.makedirs(dir_name, exist_ok=True)
@@ -108,15 +108,10 @@ if __name__ == "__main__":
         img_pred = (img_pred*255).astype(np.uint8)
         
         depth_pred = results['depth_fine'].view(h, w).cpu().numpy()
-        depth_pred[depth_pred==0] = np.inf
-        disp_pred = 1/depth_pred
-        disp_pred = (disp_pred - disp_pred.min())/(disp_pred.max() - disp_pred.min())
-        disp_pred = (disp_pred*255).astype(np.uint8)
+        save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
 
         imgs += [img_pred]
-        disps += [disp_pred]
         imageio.imwrite(os.path.join(dir_name, f'{i:03d}.png'), img_pred)
-        imageio.imwrite(os.path.join(dir_name, f'disp_{i:03d}.png'), disp_pred)
 
         if 'rgbs' in sample:
             rgbs = sample['rgbs']
@@ -124,7 +119,6 @@ if __name__ == "__main__":
             psnrs += [metrics.psnr(img_gt, img_pred).item()]
         
     imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, fps=30)
-    imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}_disp.gif'), disps, fps=30)
     
     if psnrs:
         mean_psnr = np.mean(psnrs)

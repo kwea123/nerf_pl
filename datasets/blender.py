@@ -6,7 +6,7 @@ import os
 from PIL import Image
 from torchvision import transforms as T
 
-from .utils import *
+from .ray_utils import *
 
 class BlenderDataset(Dataset):
     def __init__(self, root_dir, split='train', img_wh=(800, 800)):

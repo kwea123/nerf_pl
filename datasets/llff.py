@@ -6,7 +6,7 @@ import os
 from PIL import Image
 from torchvision import transforms as T
 
-from .utils import *
+from .ray_utils import *
 
 
 def normalize(v):
