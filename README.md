@@ -29,6 +29,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 Please see each subsection for training on different datasets. Available training datasets:
 
 * [Blender](#blender) (Realistic Synthetic 360)
+* [LLFF](#llff) (Real Forward-Facing)
 
 ## Blender
 
@@ -53,10 +54,33 @@ python train.py \
 These parameters are chosen to best mimic the training settings in the original repo.
 See [opt.py](opt.py) for all configurations.
 
-### Pretrained model and log
-Download the pretrained model and training log in [release](https://github.com/kwea123/nerf_pl/releases).
+## LLFF
 
-### Comparison with other repos
+### Data download
+
+Download `nerf_llff_data.zip` from [here](https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1)
+
+### Training model
+
+Run (example)
+```
+python train.py \
+   --dataset_name llff \
+   --root_dir $LLFF_DIR \
+   --N_importance 64 --img_wh 504 378 \
+   --num_epochs 50 --batch_size 1024 \
+   --optimizer adam --lr 5e-4 \
+   --lr_scheduler steplr --decay_step 20 30 40 --decay_gamma 0.5 \
+   --exp_name exp
+```
+
+These parameters are chosen to best mimic the training settings in the original repo.
+See [opt.py](opt.py) for all configurations.
+
+## Pretrained models and logs
+Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
+
+## Comparison with other repos
 
 |           | GPU mem in GB <br> (train) | Speed (1 step) |
 | :---:     |  :---:     | :---:   | 
@@ -64,8 +88,9 @@ Download the pretrained model and training log in [release](https://github.com/k
 | [Ref pytorch](https://github.com/yenchenlin/nerf-pytorch)  |  6.0 | 0.147s |
 | This repo | 3.2 | 0.12s |
 
-The speed is measure on 1 RTX2080Ti. Detailed profile can be found in [release](https://github.com/kwea123/nerf_pl/releases).
+The speed is measured on 1 RTX2080Ti. Detailed profile can be found in [release](https://github.com/kwea123/nerf_pl/releases).
 Training memory is largely reduced, since the original repo loads the whole data to GPU at the beginning, while we only pass batches to GPU every step.
+
 
 # Testing
 
