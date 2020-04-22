@@ -48,9 +48,9 @@ def average_poses(poses):
     # 5. Compute the y axis (as z and x are normalized, y is already of norm 1)
     y = np.cross(z, x) # (3)
 
-    poses_avg = np.stack([x, y, z, center], 1) # (3, 4)
+    pose_avg = np.stack([x, y, z, center], 1) # (3, 4)
 
-    return poses_avg
+    return pose_avg
 
 
 def center_poses(poses):
@@ -98,11 +98,11 @@ def create_spiral_poses(radii, focus_depth, n_poses=120):
 
     poses_spiral = []
     for t in np.linspace(0, 4*np.pi, n_poses+1)[:-1]: # rotate 4pi (2 rounds)
-        # the parametric function of the spiral
+        # the parametric function of the spiral (see the interactive web)
         center = np.array([np.cos(t), -np.sin(t), -np.sin(0.5*t)]) * radii
 
-        # the viewing z axis is the vector difference between @center and
-        # the @focus_depth plane
+        # the viewing z axis is the vector pointing from the @focus_depth plane
+        # to @center
         z = normalize(center - np.array([0, 0, -focus_depth]))
         
         # compute other axes as in @average_poses
@@ -150,10 +150,11 @@ class LLFFDataset(Dataset):
                 # (N_images, 3, 4) exclude H, W, focal
         poses, pose_avg = center_poses(poses)
 
-        # Step 3: correct scale so that the near plane is at a little more than 1.0
+        # Step 3: correct scale so that the nearest depth is at a little more than 1.0
         # See https://github.com/bmild/nerf/issues/34
         near_original = bounds.min()
-        scale_factor = near_original * 0.75 # 0.75 is the default parameter
+        scale_factor = near_original*0.75 # 0.75 is the default parameter
+                                          # the nearest depth is at 1/0.75=1.33
         bounds /= scale_factor
         poses[..., 3] /= scale_factor
 
@@ -216,28 +217,12 @@ class LLFFDataset(Dataset):
             sample = {'rays': self.all_rays[idx],
                       'rgbs': self.all_rgbs[idx]}
 
-        elif self.split == 'val':
-            c2w = torch.FloatTensor(self.c2w_val)
-
-            img = Image.open(self.image_path_val)
-            img = img.resize(self.img_wh, Image.LANCZOS)
-            img = self.transform(img) # (3, h, w)
-            img = img.view(3, -1).permute(1, 0) # (h*w, 3)
-
-            rays_o, rays_d = get_rays(self.directions, c2w)
-            rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
-                                          self.focal, 1.0, rays_o, rays_d)
-            rays = torch.cat([rays_o, rays_d, 
-                              torch.zeros_like(rays_o[:, :1]),
-                              torch.ones_like(rays_o[:, :1])],
-                              1) # (h*w, 8)
-
-            sample = {'rays': rays,
-                      'rgbs': img,
-                      'c2w': c2w}
-        
         else:
-            c2w = torch.FloatTensor(self.poses_spiral[idx])
+            if self.split == 'val':
+                c2w = torch.FloatTensor(self.c2w_val)
+            else:
+                c2w = torch.FloatTensor(self.poses_spiral[idx])
+
             rays_o, rays_d = get_rays(self.directions, c2w)
             rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
                                           self.focal, 1.0, rays_o, rays_d)
@@ -248,5 +233,12 @@ class LLFFDataset(Dataset):
 
             sample = {'rays': rays,
                       'c2w': c2w}
+
+            if self.split == 'val':
+                img = Image.open(self.image_path_val)
+                img = img.resize(self.img_wh, Image.LANCZOS)
+                img = self.transform(img) # (3, h, w)
+                img = img.view(3, -1).permute(1, 0) # (h*w, 3)
+                sample['rgbs'] = img
 
         return sample
