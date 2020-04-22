@@ -67,10 +67,6 @@ Download the pretrained model and training log in [release](https://github.com/k
 The speed is measure on 1 RTX2080Ti. Detailed profile can be found in [release](https://github.com/kwea123/nerf_pl/releases).
 Training memory is largely reduced, since the original repo loads the whole data to GPU at the beginning, while we only pass batches to GPU every step.
 
-## Notes on difference with the original repo
-
-The learning rate decay in the original repo is **by step**, which means it decreases every step, here I use learning rate decay **by epoch**, which means it changes only at the end of 1 epoch.
-
 # Testing
 
 See [test.ipynb](test.ipynb) for a simple view synthesis and depth prediction on 1 image.
@@ -89,6 +85,12 @@ Example of lego scene using pretrained model: (PSNR=31.39, paper=32.54)
 
 ![](assets/lego.gif)
 
+
+# Notes on differences with the original repo
+
+*  The learning rate decay in the original repo is **by step**, which means it decreases every step, here I use learning rate decay **by epoch**, which means it changes only at the end of 1 epoch.
+*  The validation image for LLFF dataset is chosen as the last image here, whereas the original repo chooses every 8th image.
+*  The rendering spiral path is slightly different from the original repo (I use approximate values to simplify the code).
+
 # TODO
-- [ ] Train on LLFF dataset
-- [ ] Render spiral/360 path
+- [ ] Test multigpu for llff data with 1 val image only across 8 gpus..
