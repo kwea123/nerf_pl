@@ -30,6 +30,7 @@ Please see each subsection for training on different datasets. Available trainin
 
 * [Blender](#blender) (Realistic Synthetic 360)
 * [LLFF](#llff) (Real Forward-Facing)
+* [Your own data](#your-own-data) (Forward-Facing)
 
 ## Blender
 
@@ -79,6 +80,13 @@ These parameters are chosen to best mimic the training settings in the original 
 
 You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
 
+## Your own data
+
+1. Install [COLMAP](https://github.com/colmap/colmap) following [installation guide](https://colmap.github.io/install.html)
+2. Prepare your images in a folder (around 20)
+3. Clone [LLFF](https://github.com/Fyusion/LLFF) and run `python img2poses.py $your-images-folder`
+4. Train the model as in [LLFF](#llff)
+
 ## Pretrained models and logs
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
 
@@ -118,7 +126,7 @@ Example of fern scene using pretrained model, shown at 1/2 scale:
 # Notes on differences with the original repo
 
 *  The learning rate decay in the original repo is **by step**, which means it decreases every step, here I use learning rate decay **by epoch**, which means it changes only at the end of 1 epoch.
-*  The validation image for LLFF dataset is chosen as the last image here, whereas the original repo chooses every 8th image.
+*  The validation image for LLFF dataset is chosen as the most centered image here, whereas the original repo chooses every 8th image.
 *  The rendering spiral path is slightly different from the original repo (I use approximate values to simplify the code).
 
 # TODO
