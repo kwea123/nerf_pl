@@ -126,7 +126,7 @@ Example of fern scene using pretrained model, shown at 1/2 scale:
 # Notes on differences with the original repo
 
 *  The learning rate decay in the original repo is **by step**, which means it decreases every step, here I use learning rate decay **by epoch**, which means it changes only at the end of 1 epoch.
-*  The validation image for LLFF dataset is chosen as the last image here, whereas the original repo chooses every 8th image.
+*  The validation image for LLFF dataset is chosen as the most centered image here, whereas the original repo chooses every 8th image.
 *  The rendering spiral path is slightly different from the original repo (I use approximate values to simplify the code).
 
 # TODO
