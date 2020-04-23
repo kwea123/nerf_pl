@@ -149,6 +149,9 @@ class LLFFDataset(Dataset):
         poses = np.concatenate([poses[..., 1:2], -poses[..., :1], poses[..., 2:4]], -1)
                 # (N_images, 3, 4) exclude H, W, focal
         poses, pose_avg = center_poses(poses)
+        distances_from_center = np.linalg.norm(poses[...,3], axis=1)
+        val_idx = np.argmin(distances_from_center) # choose val image as the closest to
+                                                   # center image
 
         # Step 3: correct scale so that the nearest depth is at a little more than 1.0
         # See https://github.com/bmild/nerf/issues/34
@@ -166,7 +169,10 @@ class LLFFDataset(Dataset):
                                   # use first N_images-1 to train, the LAST is val
             self.all_rays = []
             self.all_rgbs = []
-            for i, image_path in enumerate(image_paths[:-1]): # exclude the last image
+            for i, image_path in enumerate(image_paths):
+                if i == val_idx: # exclude the val image
+                    print('val image is', image_path)
+                    continue
                 c2w = torch.FloatTensor(poses[i])
 
                 img = Image.open(image_path)
@@ -192,8 +198,8 @@ class LLFFDataset(Dataset):
             self.all_rgbs = torch.cat(self.all_rgbs, 0) # ((N_images-1)*h*w, 3)
         
         elif self.split == 'val':
-            self.c2w_val = poses[-1]
-            self.image_path_val = image_paths[-1]
+            self.c2w_val = poses[val_idx]
+            self.image_path_val = image_paths[val_idx]
 
         else: # for testing, create a spiral rendering path
             focus_depth = 3.5 # hardcoded, this is numerically close to the formula
