@@ -30,6 +30,7 @@ Please see each subsection for training on different datasets. Available trainin
 
 * [Blender](#blender) (Realistic Synthetic 360)
 * [LLFF](#llff) (Real Forward-Facing)
+* [Your own data](#your-own-data) (Forward-Facing)
 
 ## Blender
 
@@ -78,6 +79,13 @@ python train.py \
 These parameters are chosen to best mimic the training settings in the original repo. See [opt.py](opt.py) for all configurations.
 
 You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
+
+## Your own data
+
+1. Install [COLMAP](https://github.com/colmap/colmap) following [installation guide](https://colmap.github.io/install.html)
+2. Prepare your images in a folder (around 20)
+3. Clone [LLFF](https://github.com/Fyusion/LLFF) and run `python img2poses.py $your-images-folder`
+4. Train the model as in [LLFF](#llff)
 
 ## Pretrained models and logs
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
