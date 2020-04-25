@@ -83,7 +83,7 @@ You can monitor the training process by `tensorboard --logdir logs/` and go to `
 ## Your own data
 
 1. Install [COLMAP](https://github.com/colmap/colmap) following [installation guide](https://colmap.github.io/install.html)
-2. Prepare your images in a folder (around 20~30)
+2. Prepare your images in a folder (around 20~30 for forward facing, and 80~100 for 360 inward-facing)
 3. Clone [LLFF](https://github.com/Fyusion/LLFF) and run `python img2poses.py $your-images-folder`
 4. Train the model as in [LLFF](#llff). If the scene is captured in a 360 inward-facing manner, add `--spheric --use_disp` argument.
 
