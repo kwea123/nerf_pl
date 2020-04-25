@@ -123,9 +123,9 @@ Example of fern scene using pretrained model, shown at 1/2 scale:
 
 ![fern](https://user-images.githubusercontent.com/11364490/79932650-f9d31380-8488-11ea-8dad-b70a6a3daa6e.gif)
 
-Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvEq_Av0))
+Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvEq_Av0)). Click to link to youtube video.
 
-![silica](https://user-images.githubusercontent.com/11364490/80279695-324d4880-873a-11ea-961a-d6350e149ece.gif)
+[![silica](https://user-images.githubusercontent.com/11364490/80279695-324d4880-873a-11ea-961a-d6350e149ece.gif)]( https://youtu.be/bcW78vfNDSE)
 
 
 # Notes on differences with the original repo
