@@ -30,7 +30,7 @@ Please see each subsection for training on different datasets. Available trainin
 
 * [Blender](#blender) (Realistic Synthetic 360)
 * [LLFF](#llff) (Real Forward-Facing)
-* [Your own data](#your-own-data) (Forward-Facing)
+* [Your own data](#your-own-data) (Forward-Facing/360 inward-facing)
 
 ## Blender
 
@@ -83,9 +83,9 @@ You can monitor the training process by `tensorboard --logdir logs/` and go to `
 ## Your own data
 
 1. Install [COLMAP](https://github.com/colmap/colmap) following [installation guide](https://colmap.github.io/install.html)
-2. Prepare your images in a folder (around 20)
+2. Prepare your images in a folder (around 20~30)
 3. Clone [LLFF](https://github.com/Fyusion/LLFF) and run `python img2poses.py $your-images-folder`
-4. Train the model as in [LLFF](#llff)
+4. Train the model as in [LLFF](#llff). If the scene is captured in a 360 inward-facing manner, add `--spheric --use_disp` argument.
 
 ## Pretrained models and logs
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
@@ -122,6 +122,11 @@ Example of lego scene using pretrained model, shown at 1/2 scale: (PSNR=31.39, p
 Example of fern scene using pretrained model, shown at 1/2 scale:
 
 ![fern](https://user-images.githubusercontent.com/11364490/79932650-f9d31380-8488-11ea-8dad-b70a6a3daa6e.gif)
+
+Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvEq_Av0))
+
+![silica](https://user-images.githubusercontent.com/11364490/80279695-324d4880-873a-11ea-961a-d6350e149ece.gif)
+
 
 # Notes on differences with the original repo
 
