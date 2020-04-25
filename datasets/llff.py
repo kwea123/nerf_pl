@@ -115,11 +115,57 @@ def create_spiral_poses(radii, focus_depth, n_poses=120):
     return np.stack(poses_spiral, 0) # (n_poses, 3, 4)
 
 
+def create_spheric_poses(radius, n_poses=120):
+    """
+    Create circular poses around z axis.
+    Inputs:
+        radius: the (negative) height and the radius of the circle.
+
+    Outputs:
+        spheric_poses: (n_poses, 3, 4) the poses in the circular path
+    """
+    def spheric_pose(theta, phi, radius):
+        trans_t = lambda t : np.array([
+            [1,0,0,0],
+            [0,1,0,-t],
+            [0,0,1,t],
+            [0,0,0,1],
+        ])
+
+        rot_phi = lambda phi : np.array([
+            [1,0,0,0],
+            [0,np.cos(phi),-np.sin(phi),0],
+            [0,np.sin(phi), np.cos(phi),0],
+            [0,0,0,1],
+        ])
+
+        rot_theta = lambda th : np.array([
+            [np.cos(th),0,-np.sin(th),0],
+            [0,1,0,0],
+            [np.sin(th),0, np.cos(th),0],
+            [0,0,0,1],
+        ])
+
+        c2w = rot_theta(theta) @ rot_phi(phi) @ trans_t(radius)
+        c2w = np.array([[-1,0,0,0],[0,0,1,0],[0,1,0,0],[0,0,0,1]]) @ c2w
+        return c2w[:3]
+
+    spheric_poses = []
+    for th in np.linspace(0, 2*np.pi, n_poses+1)[:-1]:
+        spheric_poses += [spheric_pose(th, -np.pi/5, radius)] # 36 degree view downwards
+    return np.stack(spheric_poses, 0)
+
+
 class LLFFDataset(Dataset):
-    def __init__(self, root_dir, split='train', img_wh=(504, 378)):
+    def __init__(self, root_dir, split='train', img_wh=(504, 378), spheric_poses=False):
+        """
+        spheric_poses: whether the images are taken in a spheric inward-facing manner
+                       default: False (forward-facing)
+        """
         self.root_dir = root_dir
         self.split = split
         self.img_wh = img_wh
+        self.spheric_poses = spheric_poses
         self.define_transforms()
 
         self.read_meta()
@@ -134,7 +180,7 @@ class LLFFDataset(Dataset):
             'Mismatch between number of images and number of poses! Please rerun COLMAP!'
 
         poses = poses_bounds[:, :15].reshape(-1, 3, 5) # (N_images, 3, 5)
-        bounds = poses_bounds[:, -2:] # (N_images, 2)
+        self.bounds = poses_bounds[:, -2:] # (N_images, 2)
 
         # Step 1: rescale focal length according to training resolution
         H, W, self.focal = poses[0, :, -1] # original intrinsics, same for all images
@@ -155,10 +201,10 @@ class LLFFDataset(Dataset):
 
         # Step 3: correct scale so that the nearest depth is at a little more than 1.0
         # See https://github.com/bmild/nerf/issues/34
-        near_original = bounds.min()
+        near_original = self.bounds.min()
         scale_factor = near_original*0.75 # 0.75 is the default parameter
                                           # the nearest depth is at 1/0.75=1.33
-        bounds /= scale_factor
+        self.bounds /= scale_factor
         poses[..., 3] /= scale_factor
 
         # ray directions for all pixels, same for all images (same H, W, focal)
@@ -171,7 +217,6 @@ class LLFFDataset(Dataset):
             self.all_rgbs = []
             for i, image_path in enumerate(image_paths):
                 if i == val_idx: # exclude the val image
-                    print('val image is', image_path)
                     continue
                 c2w = torch.FloatTensor(poses[i])
 
@@ -182,31 +227,40 @@ class LLFFDataset(Dataset):
                 self.all_rgbs += [img]
                 
                 rays_o, rays_d = get_rays(self.directions, c2w) # both (h*w, 3)
-                rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
-                                              self.focal, 1.0, rays_o, rays_d)
-                                 # near plane is always at 1.0
-                                 # See https://github.com/bmild/nerf/issues/34
+                if not self.spheric_poses:
+                    near, far = 0, 1
+                    rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
+                                                  self.focal, 1.0, rays_o, rays_d)
+                                     # near plane is always at 1.0
+                                     # near and far in NDC are always 0 and 1
+                                     # See https://github.com/bmild/nerf/issues/34
+                else:
+                    near = self.bounds.min()
+                    far = 8 * near # focus on central object only
 
                 self.all_rays += [torch.cat([rays_o, rays_d, 
-                                             torch.zeros_like(rays_o[:, :1]),
-                                             torch.ones_like(rays_o[:, :1])],
+                                             near*torch.ones_like(rays_o[:, :1]),
+                                             far*torch.ones_like(rays_o[:, :1])],
                                              1)] # (h*w, 8)
-                                 # near and far in NDC are always 0 and 1
-                                 # See https://github.com/bmild/nerf/issues/34
-
+                                 
             self.all_rays = torch.cat(self.all_rays, 0) # ((N_images-1)*h*w, 3)
             self.all_rgbs = torch.cat(self.all_rgbs, 0) # ((N_images-1)*h*w, 3)
         
         elif self.split == 'val':
+            print('val image is', image_paths[val_idx])
             self.c2w_val = poses[val_idx]
             self.image_path_val = image_paths[val_idx]
 
-        else: # for testing, create a spiral rendering path
-            focus_depth = 3.5 # hardcoded, this is numerically close to the formula
-                              # given in the original repo. Mathematically if near=1
-                              # and far=infinity, then this number will converge to 4
-            radii = np.percentile(np.abs(poses[..., 3]), 90, axis=0)
-            self.poses_spiral = create_spiral_poses(radii, focus_depth)
+        else: # for testing, create a parametric rendering path
+            if not self.spheric_poses:
+                focus_depth = 3.5 # hardcoded, this is numerically close to the formula
+                                  # given in the original repo. Mathematically if near=1
+                                  # and far=infinity, then this number will converge to 4
+                radii = np.percentile(np.abs(poses[..., 3]), 90, axis=0)
+                self.poses_test = create_spiral_poses(radii, focus_depth)
+            else:
+                radius = 1.1 * self.bounds.min()
+                self.poses_test = create_spheric_poses(radius)
 
     def define_transforms(self):
         self.transform = T.ToTensor()
@@ -216,7 +270,7 @@ class LLFFDataset(Dataset):
             return len(self.all_rays)
         if self.split == 'val':
             return 1 # only validate one image
-        return len(self.poses_spiral) # test on spiral path
+        return len(self.poses_test)
 
     def __getitem__(self, idx):
         if self.split == 'train': # use data in the buffers
@@ -227,14 +281,20 @@ class LLFFDataset(Dataset):
             if self.split == 'val':
                 c2w = torch.FloatTensor(self.c2w_val)
             else:
-                c2w = torch.FloatTensor(self.poses_spiral[idx])
+                c2w = torch.FloatTensor(self.poses_test[idx])
 
             rays_o, rays_d = get_rays(self.directions, c2w)
-            rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
-                                          self.focal, 1.0, rays_o, rays_d)
+            if not self.spheric_poses:
+                near, far = 0, 1
+                rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
+                                              self.focal, 1.0, rays_o, rays_d)
+            else:
+                near = self.bounds.min()
+                far = 8 * near
+
             rays = torch.cat([rays_o, rays_d, 
-                              torch.zeros_like(rays_o[:, :1]),
-                              torch.ones_like(rays_o[:, :1])],
+                              near*torch.ones_like(rays_o[:, :1]),
+                              far*torch.ones_like(rays_o[:, :1])],
                               1) # (h*w, 8)
 
             sample = {'rays': rays,

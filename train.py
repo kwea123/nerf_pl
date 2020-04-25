@@ -81,12 +81,12 @@ class NeRFSystem(LightningModule):
 
     def prepare_data(self):
         dataset = dataset_dict[self.hparams.dataset_name]
-        self.train_dataset = dataset(root_dir=self.hparams.root_dir,
-                                     split='train',
-                                     img_wh=tuple(self.hparams.img_wh))
-        self.val_dataset = dataset(root_dir=self.hparams.root_dir,
-                                   split='val',
-                                   img_wh=tuple(self.hparams.img_wh))
+        kwargs = {'root_dir': self.hparams.root_dir,
+                  'img_wh': tuple(self.hparams.img_wh)}
+        if self.hparams.dataset_name == 'llff':
+            kwargs['spheric_poses'] = self.hparams.spheric_poses
+        self.train_dataset = dataset(split='train', **kwargs)
+        self.val_dataset = dataset(split='val', **kwargs)
 
     def configure_optimizers(self):
         self.optimizer = get_optimizer(self.hparams, self.models)

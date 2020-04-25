@@ -29,23 +29,30 @@ def get_opts():
                         help='scene name, used as output folder name')
     parser.add_argument('--img_wh', nargs="+", type=int, default=[800, 800],
                         help='resolution (img_w, img_h) of the image')
+    parser.add_argument('--spheric_poses', default=False, action="store_true",
+                        help='whether images are taken in spheric poses (for llff)')
 
     parser.add_argument('--N_samples', type=int, default=64,
                         help='number of coarse samples')
     parser.add_argument('--N_importance', type=int, default=128,
                         help='number of additional fine samples')
+    parser.add_argument('--use_disp', default=False, action="store_true",
+                        help='use disparity depth sampling')
     parser.add_argument('--chunk', type=int, default=32*1024,
                         help='chunk size to split the input to avoid OOM')
 
     parser.add_argument('--ckpt_path', type=str, required=True,
                         help='pretrained checkpoint path to load')
 
+    parser.add_argument('--save_depth', default=False, action="store_true",
+                        help='whether to save depth prediction')
+
     return parser.parse_args()
 
 
 @torch.no_grad()
 def batched_inference(models, embeddings,
-                      rays, N_samples, N_importance,
+                      rays, N_samples, N_importance, use_disp,
                       chunk,
                       white_back):
     """Do batched inference on rays using chunk."""
@@ -58,7 +65,7 @@ def batched_inference(models, embeddings,
                         embeddings,
                         rays[i:i+chunk],
                         N_samples,
-                        False,
+                        use_disp,
                         0,
                         0,
                         N_importance,
@@ -77,8 +84,11 @@ if __name__ == "__main__":
     args = get_opts()
     w, h = args.img_wh
 
-    dataset = dataset_dict[args.dataset_name](args.root_dir, 'test',
-                                              img_wh=(w, h))
+    kwargs = {'root_dir': args.root_dir,
+              'img_wh': tuple(args.img_wh)}
+    if args.dataset_name == 'llff':
+        kwargs['spheric_poses'] = args.spheric_poses
+    dataset = dataset_dict[args.dataset_name](split='test', **kwargs)
 
     embedding_xyz = Embedding(3, 10)
     embedding_dir = Embedding(3, 4)
@@ -101,13 +111,15 @@ if __name__ == "__main__":
         sample = dataset[i]
         rays = sample['rays'].cuda()
         results = batched_inference(models, embeddings, rays,
-                                    args.N_samples, args.N_importance, args.chunk,
+                                    args.N_samples, args.N_importance, args.use_disp,
+                                    args.chunk,
                                     dataset.white_back)
 
         img_pred = results['rgb_fine'].view(h, w, 3).cpu().numpy()
         
-        depth_pred = results['depth_fine'].view(h, w).cpu().numpy()
-        save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
+        if args.save_depth:
+            depth_pred = results['depth_fine'].view(h, w).cpu().numpy()
+            save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
 
         img_pred_ = (img_pred*255).astype(np.uint8)
         imgs += [img_pred_]
