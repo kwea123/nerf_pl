@@ -136,8 +136,9 @@ Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvE
 # COLAB
 
 I also prepared colab notebooks that allow you to run the algorithm on any machine without GPU requirement.
-[colmap](https://gist.github.com/kwea123/f0e8f38ff2aa94495dbfe7ae9219f75c) to prepare camera poses for your own training data
-[nerf](https://gist.github.com/kwea123/a3c541a325e895ef79ecbc0d2e6d7221) to train on your data
+
+*  [colmap](https://gist.github.com/kwea123/f0e8f38ff2aa94495dbfe7ae9219f75c) to prepare camera poses for your own training data
+*  [nerf](https://gist.github.com/kwea123/a3c541a325e895ef79ecbc0d2e6d7221) to train on your data
 
 Please see [this video] for the detailed tutorial.
 
