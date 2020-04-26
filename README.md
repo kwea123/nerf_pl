@@ -127,12 +127,19 @@ Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvE
 
 [![silica](https://user-images.githubusercontent.com/11364490/80279695-324d4880-873a-11ea-961a-d6350e149ece.gif)](  https://youtu.be/yH1ZBcdNsUY)
 
-
 # Notes on differences with the original repo
 
 *  The learning rate decay in the original repo is **by step**, which means it decreases every step, here I use learning rate decay **by epoch**, which means it changes only at the end of 1 epoch.
 *  The validation image for LLFF dataset is chosen as the most centered image here, whereas the original repo chooses every 8th image.
 *  The rendering spiral path is slightly different from the original repo (I use approximate values to simplify the code).
+
+# COLAB
+
+I also prepared colab notebooks that allow you to run the algorithm on any machine without GPU requirement.
+[colmap](https://gist.github.com/kwea123/f0e8f38ff2aa94495dbfe7ae9219f75c) to prepare camera poses for your own training data
+[nerf](https://gist.github.com/kwea123/a3c541a325e895ef79ecbc0d2e6d7221) to train on your data
+
+Please see [this video] for the detailed tutorial.
 
 # TODO
 - [ ] Test multigpu for llff data with 1 val image only across 8 gpus..
