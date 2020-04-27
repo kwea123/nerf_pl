@@ -8,6 +8,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 ## Features
 
 * Multi-gpu training: Training on 8 GPUs finishes within 1 hour for the synthetic dataset!
+* [Colab](#colab) notebooks to allow easy usage!
 
 # Installation
 
