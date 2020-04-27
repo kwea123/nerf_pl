@@ -80,7 +80,7 @@ These parameters are chosen to best mimic the training settings in the original 
 
 You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
 
-## Your own data
+## Your own data (experimental!)
 
 1. Install [COLMAP](https://github.com/colmap/colmap) following [installation guide](https://colmap.github.io/install.html)
 2. Prepare your images in a folder (around 20 to 30 for forward facing, and 80 to 100 for 360 inward-facing)
