@@ -1,34 +1,13 @@
 import torch
 from torchsearchsorted import searchsorted
 
-__all__ = ['render_rays'] # only render_rays is called outside
-
 """
 Function dependencies: (-> means function calls)
 
-@render_rays -> @inference -> @batched_inference
+@render_rays -> @inference
 
 @render_rays -> @sample_pdf if there is fine model
 """
-
-def batched_inference(model, inputs, chunk=1024*32):
-    """
-    Perform model inference by cutting input to smaller chunks due to memory issue.
-
-    Inputs:
-        model: model to run inference
-        inputs: (B, ?) inputs to run inference
-        chunk: the chunk size
-
-    Outputs:
-        out: (B, ?) having the same content as model(inputs)
-    """
-    B = inputs.shape[0]
-    out_chunks = [model(inputs[i:i+chunk]) for i in range(0, B, chunk)]
-    out = torch.cat(out_chunks, 0)
-
-    return out
-
 
 def sample_pdf(bins, weights, N_importance, det=False, eps=1e-5):
     """
@@ -97,7 +76,7 @@ def render_rays(models,
         perturb: factor to perturb the sampling position on the ray (for coarse model only)
         noise_std: factor to perturb the model's prediction of sigma
         N_importance: number of fine samples per ray
-        chunk: the chunk size in @batched_inference
+        chunk: the chunk size in batched inference
         white_back: whether the background is white (dataset dependent)
 
     Outputs:
@@ -134,10 +113,15 @@ def render_rays(models,
         dir_embedded = torch.repeat_interleave(dir_embedded, repeats=N_samples_, dim=0)
                        # (N_rays*N_samples_, embed_dir_channels)
 
-        xyzdir_embedded = torch.cat([xyz_embedded, dir_embedded], 1)
+        # Perform model inference to get rgb and raw sigma
+        B = xyz_.shape[0]
+        out_chunks = []
+        for i in range(0, B, chunk):
+            xyzdir_embedded = torch.cat([xyz_embedded[i:i+chunk],
+                                         dir_embedded[i:i+chunk]], 1)
+            out_chunks += [model(xyzdir_embedded)]
 
-        # Perform model inference to get raw rgb sigma
-        rgbsigma = batched_inference(model, xyzdir_embedded, chunk)
+        rgbsigma = torch.cat(out_chunks, 0)
         rgbsigma = rgbsigma.view(N_rays, N_samples_, 4)
 
         # Convert these values using volume rendering (Section 4)
