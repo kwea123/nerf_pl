@@ -77,7 +77,7 @@ def center_poses(poses):
     poses_centered = np.linalg.inv(pose_avg_homo) @ poses_homo # (N_images, 4, 4)
     poses_centered = poses_centered[:, :3] # (N_images, 3, 4)
 
-    return poses_centered, pose_avg
+    return poses_centered, np.linalg.inv(pose_avg_homo)
 
 
 def create_spiral_poses(radii, focus_depth, n_poses=120):
@@ -115,7 +115,7 @@ def create_spiral_poses(radii, focus_depth, n_poses=120):
     return np.stack(poses_spiral, 0) # (n_poses, 3, 4)
 
 
-def create_spheric_poses(radius, n_poses=120):
+def create_spheric_poses(poses, radius, n_poses=120):
     """
     Create circular poses around z axis.
     Inputs:
@@ -127,7 +127,7 @@ def create_spheric_poses(radius, n_poses=120):
     def spheric_pose(theta, phi, radius):
         trans_t = lambda t : np.array([
             [1,0,0,0],
-            [0,1,0,-t],
+            [0,1,0,-0.9*t],
             [0,0,1,t],
             [0,0,0,1],
         ])
@@ -194,8 +194,8 @@ class LLFFDataset(Dataset):
         # See https://github.com/bmild/nerf/issues/34
         poses = np.concatenate([poses[..., 1:2], -poses[..., :1], poses[..., 2:4]], -1)
                 # (N_images, 3, 4) exclude H, W, focal
-        poses, pose_avg = center_poses(poses)
-        distances_from_center = np.linalg.norm(poses[...,3], axis=1)
+        self.poses, self.pose_avg = center_poses(poses)
+        distances_from_center = np.linalg.norm(self.poses[..., 3], axis=1)
         val_idx = np.argmin(distances_from_center) # choose val image as the closest to
                                                    # center image
 
@@ -205,7 +205,7 @@ class LLFFDataset(Dataset):
         scale_factor = near_original*0.75 # 0.75 is the default parameter
                                           # the nearest depth is at 1/0.75=1.33
         self.bounds /= scale_factor
-        poses[..., 3] /= scale_factor
+        self.poses[..., 3] /= scale_factor
 
         # ray directions for all pixels, same for all images (same H, W, focal)
         self.directions = \
@@ -218,7 +218,7 @@ class LLFFDataset(Dataset):
             for i, image_path in enumerate(image_paths):
                 if i == val_idx: # exclude the val image
                     continue
-                c2w = torch.FloatTensor(poses[i])
+                c2w = torch.FloatTensor(self.poses[i])
 
                 img = Image.open(image_path)
                 img = img.resize(self.img_wh, Image.LANCZOS)
@@ -236,7 +236,7 @@ class LLFFDataset(Dataset):
                                      # See https://github.com/bmild/nerf/issues/34
                 else:
                     near = self.bounds.min()
-                    far = 8 * near # focus on central object only
+                    far = min(8 * near, self.bounds.max()) # focus on central object only
 
                 self.all_rays += [torch.cat([rays_o, rays_d, 
                                              near*torch.ones_like(rays_o[:, :1]),
@@ -248,7 +248,7 @@ class LLFFDataset(Dataset):
         
         elif self.split == 'val':
             print('val image is', image_paths[val_idx])
-            self.c2w_val = poses[val_idx]
+            self.c2w_val = self.poses[val_idx]
             self.image_path_val = image_paths[val_idx]
 
         else: # for testing, create a parametric rendering path
@@ -256,11 +256,11 @@ class LLFFDataset(Dataset):
                 focus_depth = 3.5 # hardcoded, this is numerically close to the formula
                                   # given in the original repo. Mathematically if near=1
                                   # and far=infinity, then this number will converge to 4
-                radii = np.percentile(np.abs(poses[..., 3]), 90, axis=0)
+                radii = np.percentile(np.abs(self.poses[..., 3]), 90, axis=0)
                 self.poses_test = create_spiral_poses(radii, focus_depth)
             else:
                 radius = 1.1 * self.bounds.min()
-                self.poses_test = create_spheric_poses(radius)
+                self.poses_test = create_spheric_poses(self.poses, radius)
 
     def define_transforms(self):
         self.transform = T.ToTensor()
@@ -290,7 +290,7 @@ class LLFFDataset(Dataset):
                                               self.focal, 1.0, rays_o, rays_d)
             else:
                 near = self.bounds.min()
-                far = 8 * near
+                far = min(8 * near, self.bounds.max())
 
             rays = torch.cat([rays_o, rays_d, 
                               near*torch.ones_like(rays_o[:, :1]),
