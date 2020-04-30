@@ -115,7 +115,7 @@ def create_spiral_poses(radii, focus_depth, n_poses=120):
     return np.stack(poses_spiral, 0) # (n_poses, 3, 4)
 
 
-def create_spheric_poses(poses, radius, n_poses=120):
+def create_spheric_poses(radius, n_poses=120):
     """
     Create circular poses around z axis.
     Inputs:
@@ -260,7 +260,7 @@ class LLFFDataset(Dataset):
                 self.poses_test = create_spiral_poses(radii, focus_depth)
             else:
                 radius = 1.1 * self.bounds.min()
-                self.poses_test = create_spheric_poses(self.poses, radius)
+                self.poses_test = create_spheric_poses(radius)
 
     def define_transforms(self):
         self.transform = T.ToTensor()
