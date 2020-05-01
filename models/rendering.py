@@ -1,6 +1,8 @@
 import torch
 from torchsearchsorted import searchsorted
 
+__all__ = ['render_rays']
+
 """
 Function dependencies: (-> means function calls)
 
@@ -108,8 +110,7 @@ def render_rays(models,
         # Embed positions and directions
         xyz_ = xyz_.view(-1, 3) # (N_rays*N_samples_, 3)
         xyz_embedded = embedding_xyz(xyz_) # (N_rays*N_samples_, embed_xyz_channels)
-        dir_normalized = dir_/torch.norm(dir_, dim=1, keepdim=True) # (N_rays, 3)
-        dir_embedded = embedding_dir(dir_normalized) # (N_rays, embed_dir_channels)
+        dir_embedded = embedding_dir(dir_) # (N_rays, embed_dir_channels)
         dir_embedded = torch.repeat_interleave(dir_embedded, repeats=N_samples_, dim=0)
                        # (N_rays*N_samples_, embed_dir_channels)
 

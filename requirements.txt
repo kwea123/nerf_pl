@@ -11,4 +11,7 @@ jupyter
 PyMCubes
 trimesh
 pyglet
-pyrender
+
+# for point cloud
+plyfile
+open3d
