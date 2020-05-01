@@ -33,18 +33,25 @@ class BlenderDataset(Dataset):
         # bounds, common for all scenes
         self.near = 2.0
         self.far = 6.0
+        self.bounds = np.array([self.near, self.far])
         
         # ray directions for all pixels, same for all images (same H, W, focal)
         self.directions = \
             get_ray_directions(h, w, self.focal) # (h, w, 3)
             
         if self.split == 'train': # create buffer of all rays and rgb data
+            self.image_paths = []
+            self.poses = []
             self.all_rays = []
             self.all_rgbs = []
             for frame in self.meta['frames']:
-                c2w = torch.FloatTensor(frame['transform_matrix'])[:3, :4]
+                pose = np.array(frame['transform_matrix'])[:3, :4]
+                self.poses += [pose]
+                c2w = torch.FloatTensor(pose)
 
-                img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
+                image_path = os.path.join(self.root_dir, f"{frame['file_path']}.png")
+                self.image_paths += [image_path]
+                img = Image.open(image_path)
                 img = img.resize(self.img_wh, Image.LANCZOS)
                 img = self.transform(img) # (4, h, w)
                 img = img.view(4, -1).permute(1, 0) # (h*w, 4) RGBA

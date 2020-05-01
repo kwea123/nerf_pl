@@ -174,9 +174,9 @@ class LLFFDataset(Dataset):
     def read_meta(self):
         poses_bounds = np.load(os.path.join(self.root_dir,
                                             'poses_bounds.npy')) # (N_images, 17)
-        image_paths = sorted(glob.glob(os.path.join(self.root_dir, 'images/*.JPG')))
+        self.image_paths = sorted(glob.glob(os.path.join(self.root_dir, 'images/*.JPG')))
                       # load full resolution image then resize
-        assert len(poses_bounds) == len(image_paths), \
+        assert len(poses_bounds) == len(self.image_paths), \
             'Mismatch between number of images and number of poses! Please rerun COLMAP!'
 
         poses = poses_bounds[:, :15].reshape(-1, 3, 5) # (N_images, 3, 5)
@@ -215,7 +215,7 @@ class LLFFDataset(Dataset):
                                   # use first N_images-1 to train, the LAST is val
             self.all_rays = []
             self.all_rgbs = []
-            for i, image_path in enumerate(image_paths):
+            for i, image_path in enumerate(self.image_paths):
                 if i == val_idx: # exclude the val image
                     continue
                 c2w = torch.FloatTensor(self.poses[i])
@@ -247,9 +247,9 @@ class LLFFDataset(Dataset):
             self.all_rgbs = torch.cat(self.all_rgbs, 0) # ((N_images-1)*h*w, 3)
         
         elif self.split == 'val':
-            print('val image is', image_paths[val_idx])
+            print('val image is', self.image_paths[val_idx])
             self.c2w_val = self.poses[val_idx]
-            self.image_path_val = image_paths[val_idx]
+            self.image_path_val = self.image_paths[val_idx]
 
         else: # for testing, create a parametric rendering path
             if not self.spheric_poses:
