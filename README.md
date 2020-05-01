@@ -9,6 +9,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 
 * Multi-gpu training: Training on 8 GPUs finishes within 1 hour for the synthetic dataset!
 * [Colab](#colab) notebooks to allow easy usage!
+* Reconstruct **colored** mesh!
 
 # Installation
 
@@ -118,17 +119,25 @@ python eval.py \
 ```
 It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
-Example of lego scene using pretrained model, shown at 1/2 scale: (PSNR=31.39, paper=32.54)
+Example of lego scene using pretrained model and the reconstructed **colored** mesh: (PSNR=31.39, paper=32.54)
 
-![lego](https://user-images.githubusercontent.com/11364490/79932648-f8a1e680-8488-11ea-98fe-c11ec22fc8a1.gif)
+<p>
+<img src="https://user-images.githubusercontent.com/11364490/79932648-f8a1e680-8488-11ea-98fe-c11ec22fc8a1.gif" width="200">
+<img src="https://user-images.githubusercontent.com/11364490/80813179-822d8300-8c04-11ea-84e6-142f04714c58.png" width="200">
+</p>
 
-Example of fern scene using pretrained model, shown at 1/2 scale:
+Example of fern scene using pretrained model:
 
 ![fern](https://user-images.githubusercontent.com/11364490/79932650-f9d31380-8488-11ea-8dad-b70a6a3daa6e.gif)
 
-Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvEq_Av0)). Click to link to youtube video.
+Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvEq_Av0)) and the reconstructed **colored** mesh. Click to link to youtube video.
 
-[![silica](https://user-images.githubusercontent.com/11364490/80279695-324d4880-873a-11ea-961a-d6350e149ece.gif)](  https://youtu.be/yH1ZBcdNsUY)
+<p>
+<a href="https://youtu.be/yH1ZBcdNsUY">
+  <img src="https://user-images.githubusercontent.com/11364490/80279695-324d4880-873a-11ea-961a-d6350e149ece.gif" height="252">
+</a>
+<img src="https://user-images.githubusercontent.com/11364490/80813184-83f74680-8c04-11ea-8606-40580f753355.png" height="252">
+</p>
 
 # Notes on differences with the original repo
 
