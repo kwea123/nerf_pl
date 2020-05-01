@@ -119,6 +119,7 @@ if __name__ == "__main__":
         
         if args.save_depth:
             depth_pred = results['depth_fine'].view(h, w).cpu().numpy()
+            depth_pred = np.nan_to_num(depth_pred)
             save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
 
         img_pred_ = (img_pred*255).astype(np.uint8)
