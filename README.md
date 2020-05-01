@@ -9,7 +9,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 
 * Multi-gpu training: Training on 8 GPUs finishes within 1 hour for the synthetic dataset!
 * [Colab](#colab) notebooks to allow easy usage!
-* Reconstruct **colored** mesh!
+* [Reconstruct](#mesh) **colored** mesh!
 
 # Installation
 
@@ -138,6 +138,10 @@ Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvE
 </a>
 <img src="https://user-images.githubusercontent.com/11364490/80813184-83f74680-8c04-11ea-8606-40580f753355.png" height="252">
 </p>
+
+# Mesh
+
+See [README_mesh](README_mesh.md) for reconstruction of **colored** mesh. Only supported for blender dataset and 360 inward-facing data!
 
 # Notes on differences with the original repo
 
