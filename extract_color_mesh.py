@@ -88,7 +88,10 @@ if __name__ == "__main__":
               'img_wh': tuple(args.img_wh)}
     if args.dataset_name == 'llff':
         kwargs['spheric_poses'] = True
-    dataset = dataset_dict[args.dataset_name](split='train', **kwargs)
+        kwargs['split'] = 'test'
+    else:
+        kwargs['split'] = 'train'
+    dataset = dataset_dict[args.dataset_name](**kwargs)
 
     embedding_xyz = Embedding(3, 10)
     embedding_dir = Embedding(3, 4)
