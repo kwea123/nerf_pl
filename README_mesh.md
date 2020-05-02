@@ -44,7 +44,7 @@ So the problem becomes: How do we correctly infer occlusion information, to know
     
     The spurious face on the mantle disappears, and the colored pixels are almost exactly the ones we can observe from the image. By default we set the vertices to be all black, so a black vertex means it's occluded in this view, but will be assigned color when we change to other views.
     
-# Step 4. Remove noise
+## Step 4. Remove noise
 
 Running until step 3 gives us a model with plausible colors, but still one problem left: noise. The noise could be due to wrongly predicted occupancy in step 1, or you might consider the floor as noise. To remove these noises, we use a simple method: only keep the largest cluster. We cluster the triangles into groups (two triangles are in the same group if they are connected), and only keep the biggest one.
 
