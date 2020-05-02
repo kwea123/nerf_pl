@@ -97,7 +97,7 @@ def render_rays(models,
                   N_samples_ is the number of sampled points in each ray;
                              = N_samples for coarse model
                              = N_samples+N_importance for fine model
-            dir_: (N_rays, 3) directions (not normalized)
+            dir_: (N_rays, 3) normalized directions
             z_vals: (N_rays, N_samples_) depths of the sampled positions
 
         Outputs:
