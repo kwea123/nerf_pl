@@ -9,6 +9,7 @@ jupyter
 
 # for mesh
 PyMCubes
+pycollada
 trimesh
 pyglet
 
