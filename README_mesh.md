@@ -55,5 +55,6 @@ This is the final result:
 <img src="https://user-images.githubusercontent.com/11364490/80813184-83f74680-8c04-11ea-8606-40580f753355.png" height="252">
 
 We can then export this `.ply` file to any other format, and embed in programs like I did in Unity:
+(I use [this plugin](https://github.com/keijiro/Pcx) to import `.ply` file to unity)
 
 ![image](https://user-images.githubusercontent.com/11364490/80859833-9e7dfe00-8c9e-11ea-9fa1-ec48237e3873.png)
