@@ -156,7 +156,7 @@ I also prepared colab notebooks that allow you to run the algorithm on any machi
 *  [colmap](https://gist.github.com/kwea123/f0e8f38ff2aa94495dbfe7ae9219f75c) to prepare camera poses for your own training data
 *  [nerf](https://gist.github.com/kwea123/a3c541a325e895ef79ecbc0d2e6d7221) to train on your data
 
-Please see [this video] for the detailed tutorial.
+Please see [this video](https://youtu.be/TQj-KUQophI) for the detailed tutorial.
 
 # TODO
 - [ ] Test multigpu for llff data with 1 val image only across 8 gpus..
