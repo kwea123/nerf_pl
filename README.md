@@ -11,6 +11,12 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 * [Colab](#colab) notebooks to allow easy usage!
 * [Reconstruct](#mesh) **colored** mesh!
 
+## Tutorial
+
+<a href="https://youtu.be/TQj-KUQophI">
+<img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png">
+</a>
+   
 # Installation
 
 ## Hardware
