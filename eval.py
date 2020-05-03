@@ -27,6 +27,9 @@ def get_opts():
                         help='which dataset to validate')
     parser.add_argument('--scene_name', type=str, default='test',
                         help='scene name, used as output folder name')
+    parser.add_argument('--split', type=str, default='test',
+                        choices=['test', 'test_train'],
+                        help='test or test_train')
     parser.add_argument('--img_wh', nargs="+", type=int, default=[800, 800],
                         help='resolution (img_w, img_h) of the image')
     parser.add_argument('--spheric_poses', default=False, action="store_true",
@@ -85,10 +88,11 @@ if __name__ == "__main__":
     w, h = args.img_wh
 
     kwargs = {'root_dir': args.root_dir,
+              'split': args.split,
               'img_wh': tuple(args.img_wh)}
     if args.dataset_name == 'llff':
         kwargs['spheric_poses'] = args.spheric_poses
-    dataset = dataset_dict[args.dataset_name](split='test', **kwargs)
+    dataset = dataset_dict[args.dataset_name](**kwargs)
 
     embedding_xyz = Embedding(3, 10)
     embedding_dir = Embedding(3, 4)

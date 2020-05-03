@@ -135,6 +135,28 @@ if __name__ == "__main__":
 
     ##### Until mesh extraction here, it is the same as the original repo. ######
 
+    vertices_ = (vertices/N).astype(np.float32)
+    vertices_.dtype = [('x', 'f4'), ('y', 'f4'), ('z', 'f4')]
+
+    face = np.empty(len(triangles), dtype=[('vertex_indices', 'i4', (3,))])
+    face['vertex_indices'] = triangles
+
+    PlyData([PlyElement.describe(vertices_[:, 0], 'vertex'), 
+             PlyElement.describe(face, 'face')]).write(f'{args.scene_name}.ply')
+
+    # remove noise in the mesh by keeping only the biggest cluster
+    print('Removing noise ...')
+    mesh = o3d.io.read_triangle_mesh(f"{args.scene_name}.ply")
+    idxs, count, _ = mesh.cluster_connected_triangles()
+    max_cluster_idx = np.argmax(count)
+    triangles_to_remove = [i for i in range(len(face)) if idxs[i] != max_cluster_idx]
+    mesh.remove_triangles_by_index(triangles_to_remove)
+    mesh.remove_unreferenced_vertices()
+    print(f'Mesh has {len(mesh.vertices)/1e6:.2f} M vertices and {len(mesh.triangles)/1e6:.2f} M faces.')
+
+    vertices_ = np.asarray(mesh.vertices).astype(np.float32)
+    triangles = np.asarray(mesh.triangles)
+
     # perform color prediction
     # Step 0. define constants (image width, height and intrinsics)
     W, H = args.img_wh
@@ -143,7 +165,6 @@ if __name__ == "__main__":
                   [0,             0,   1]]).astype(np.float32)
 
     # Step 1. transform vertices into world coordinate
-    vertices_ = (vertices/N).astype(np.float32)
     N_vertices = len(vertices_)
 
     ## invert x and y coordinates (WHY? maybe because of the marching cubes algo)
@@ -241,16 +262,4 @@ if __name__ == "__main__":
     PlyData([PlyElement.describe(vertex_all, 'vertex'), 
              PlyElement.describe(face, 'face')]).write(f'{args.scene_name}.ply')
 
-
-    # Step 4. Remove noise in the mesh by keeping only the biggest cluster
-    print('Removing noise ...')
-    mesh = o3d.io.read_triangle_mesh(f"{args.scene_name}.ply")
-    idxs, count, _ = mesh.cluster_connected_triangles()
-    max_cluster_idx = np.argmax(count)
-    triangles_to_remove = [i for i in range(len(face)) if idxs[i] != max_cluster_idx]
-    mesh.remove_triangles_by_index(triangles_to_remove)
-    mesh.remove_unreferenced_vertices()
-    o3d.io.write_triangle_mesh(f'{args.scene_name}.ply', mesh)
-
-    print(f'Mesh has {len(mesh.vertices)/1e6:.2f} M vertices and {len(mesh.triangles)/1e6:.2f} M faces.')
     print('Done!')

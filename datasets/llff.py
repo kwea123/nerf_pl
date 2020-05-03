@@ -252,7 +252,9 @@ class LLFFDataset(Dataset):
             self.image_path_val = self.image_paths[val_idx]
 
         else: # for testing, create a parametric rendering path
-            if not self.spheric_poses:
+            if self.split.endswith('train'): # test on training set
+                self.poses_test = self.poses
+            elif not self.spheric_poses:
                 focus_depth = 3.5 # hardcoded, this is numerically close to the formula
                                   # given in the original repo. Mathematically if near=1
                                   # and far=infinity, then this number will converge to 4
