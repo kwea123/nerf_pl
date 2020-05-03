@@ -11,7 +11,11 @@ As the [original repo](https://github.com/bmild/nerf/blob/master/extract_mesh.ip
 
 After we know which cells are occupied, we can use [marching cube algorithm](https://en.wikipedia.org/wiki/Marching_cubes) to extract mesh. This mesh will only contain vertices and faces, if you don't require color, you can stop here and export the mesh. Until here, the code is the same as the original repo.
 
-## Step 3. Compute color for each vertex
+## Step 3. Remove noise
+
+The mesh might contain some noise, which could be due to wrongly predicted occupancy in step 1, or you might consider the floor as noise. To remove these noises, we use a simple method: only keep the largest cluster. We cluster the triangles into groups (two triangles are in the same group if they are connected), and only keep the biggest one. After removing the noise, we then compute the color for each vertex.
+
+## Step 4. Compute color for each vertex
 
 We adopt the concept of assigning colors to vertices instead of faces (they are actually somehow equivalent, as you can think of the color of vertices as the average color of neighboring faces and vice versa). To compute the color of a vertex, we leverage the **training images**: we project this vertex onto the training images to get its rgb values, then average these values as its final color. Notice that the projected pixel coordinates are floating numbers, and we use *bilinear interpolation* as its rgb value.
 
@@ -43,10 +47,7 @@ So the problem becomes: How do we correctly infer occlusion information, to know
     <img src="https://user-images.githubusercontent.com/11364490/80859510-945b0000-8c9c-11ea-888a-a01ad1c3433d.png" width=200>
     
     The spurious face on the mantle disappears, and the colored pixels are almost exactly the ones we can observe from the image. By default we set the vertices to be all black, so a black vertex means it's occluded in this view, but will be assigned color when we change to other views.
-    
-## Step 4. Remove noise
 
-Running until step 3 gives us a model with plausible colors, but still one problem left: noise. The noise could be due to wrongly predicted occupancy in step 1, or you might consider the floor as noise. To remove these noises, we use a simple method: only keep the largest cluster. We cluster the triangles into groups (two triangles are in the same group if they are connected), and only keep the biggest one.
 
 # Finally...
 
