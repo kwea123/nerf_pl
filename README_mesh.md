@@ -59,3 +59,6 @@ We can then export this `.ply` file to any other format, and embed in programs l
 (I use [this plugin](https://github.com/keijiro/Pcx) to import `.ply` file to unity)
 
 ![image](https://user-images.githubusercontent.com/11364490/80859833-9e7dfe00-8c9e-11ea-9fa1-ec48237e3873.png)
+
+## Further reading
+The author suggested [another way](https://github.com/bmild/nerf/issues/44#issuecomment-622961303) to extract color, in my experiments it doesn't turn out to be good, but the idea is reasonable and interesting.
