@@ -10,6 +10,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 * Multi-gpu training: Training on 8 GPUs finishes within 1 hour for the synthetic dataset!
 * [Colab](#colab) notebooks to allow easy usage!
 * [Reconstruct](#mesh) **colored** mesh!
+* [Mixed Reality](https://youtu.be/S5phWFTs2iM) in Unity! (code to be updated)
 
 ## Tutorial
 
