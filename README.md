@@ -13,7 +13,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 
 ## Tutorial
 
-<a href="https://youtu.be/TQj-KUQophI">
+<a href="https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV">
 <img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png">
 </a>
    
