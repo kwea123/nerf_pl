@@ -64,7 +64,8 @@ def render_rays(models,
                 noise_std=1,
                 N_importance=0,
                 chunk=1024*32,
-                white_back=False
+                white_back=False,
+                test_time=False
                 ):
     """
     Render rays by computing the output of @model applied on @rays
@@ -80,54 +81,66 @@ def render_rays(models,
         N_importance: number of fine samples per ray
         chunk: the chunk size in batched inference
         white_back: whether the background is white (dataset dependent)
+        test_time: whether it is test (inference only) or not. If True, it will not do inference
+                   on coarse rgb to save time
 
     Outputs:
         result: dictionary containing final rgb and depth maps for coarse and fine models
     """
 
-    def inference(model, embedding_xyz, embedding_dir, xyz_, dir_, z_vals):
+    def inference(model, embedding_xyz, xyz_, dir_, dir_embedded, z_vals, weights_only=False):
         """
         Helper function that performs model inference.
 
         Inputs:
             model: NeRF model (coarse or fine)
             embedding_xyz: embedding module for xyz
-            embedding_dir: embedding module for dir
             xyz_: (N_rays, N_samples_, 3) sampled positions
                   N_samples_ is the number of sampled points in each ray;
                              = N_samples for coarse model
                              = N_samples+N_importance for fine model
-            dir_: (N_rays, 3) normalized directions
+            dir_: (N_rays, 3) ray directions
+            dir_embedded: (N_rays, embed_dir_channels) embedded directions
             z_vals: (N_rays, N_samples_) depths of the sampled positions
+            weights_only: do inference on sigma only or not
 
         Outputs:
-            rgb_final: (N_rays, 3) the final rgb image
-            depth_final: (N_rays) depth map
-            weights: (N_rays, N_samples_): weights fo each sample
-
+            if weights_only:
+                weights: (N_rays, N_samples_): weights of each sample
+            else:
+                rgb_final: (N_rays, 3) the final rgb image
+                depth_final: (N_rays) depth map
+                weights: (N_rays, N_samples_): weights of each sample
         """
         N_samples_ = xyz_.shape[1]
-        # Embed positions and directions
+        # Embed directions
         xyz_ = xyz_.view(-1, 3) # (N_rays*N_samples_, 3)
-        xyz_embedded = embedding_xyz(xyz_) # (N_rays*N_samples_, embed_xyz_channels)
-        dir_embedded = embedding_dir(dir_) # (N_rays, embed_dir_channels)
-        dir_embedded = torch.repeat_interleave(dir_embedded, repeats=N_samples_, dim=0)
-                       # (N_rays*N_samples_, embed_dir_channels)
+        if not weights_only:
+            dir_embedded = torch.repeat_interleave(dir_embedded, repeats=N_samples_, dim=0)
+                           # (N_rays*N_samples_, embed_dir_channels)
 
         # Perform model inference to get rgb and raw sigma
         B = xyz_.shape[0]
         out_chunks = []
         for i in range(0, B, chunk):
-            xyzdir_embedded = torch.cat([xyz_embedded[i:i+chunk],
-                                         dir_embedded[i:i+chunk]], 1)
-            out_chunks += [model(xyzdir_embedded)]
+            # Embed positions by chunk
+            xyz_embedded = embedding_xyz(xyz_[i:i+chunk])
+            if not weights_only:
+                xyzdir_embedded = torch.cat([xyz_embedded,
+                                             dir_embedded[i:i+chunk]], 1)
+            else:
+                xyzdir_embedded = xyz_embedded
+            out_chunks += [model(xyzdir_embedded, sigma_only=weights_only)]
 
-        rgbsigma = torch.cat(out_chunks, 0)
-        rgbsigma = rgbsigma.view(N_rays, N_samples_, 4)
+        out = torch.cat(out_chunks, 0)
+        if weights_only:
+            sigmas = out.view(N_rays, N_samples_)
+        else:
+            rgbsigma = out.view(N_rays, N_samples_, 4)
+            rgbs = rgbsigma[..., :3] # (N_rays, N_samples_, 3)
+            sigmas = rgbsigma[..., 3] # (N_rays, N_samples_)
 
         # Convert these values using volume rendering (Section 4)
-        rgbs = rgbsigma[..., :3] # (N_rays, N_samples_, 3)
-        sigmas = rgbsigma[..., 3] # (N_rays, N_samples_)
         deltas = z_vals[:, 1:] - z_vals[:, :-1] # (N_rays, N_samples_-1)
         delta_inf = 1e10 * torch.ones_like(deltas[:, :1]) # (N_rays, 1) the last delta is infinity
         deltas = torch.cat([deltas, delta_inf], -1)  # (N_rays, N_samples_)
@@ -146,6 +159,8 @@ def render_rays(models,
             alphas * torch.cumprod(alphas_shifted, -1)[:, :-1] # (N_rays, N_samples_)
         weights_sum = weights.sum(1) # (N_rays), the accumulated opacity along the rays
                                      # equals "1 - (1-a1)(1-a2)...(1-an)" mathematically
+        if weights_only:
+            return weights
 
         # compute final weighted outputs
         rgb_final = torch.sum(weights.unsqueeze(-1)*rgbs, -2) # (N_rays, 3)
@@ -166,6 +181,9 @@ def render_rays(models,
     N_rays = rays.shape[0]
     rays_o, rays_d = rays[:, 0:3], rays[:, 3:6] # both (N_rays, 3)
     near, far = rays[:, 6:7], rays[:, 7:8] # both (N_rays, 1)
+
+    # Embed direction
+    dir_embedded = embedding_dir(rays_d) # (N_rays, embed_dir_channels)
 
     # Sample depth points
     z_steps = torch.linspace(0, 1, N_samples, device=rays.device) # (N_samples)
@@ -188,14 +206,19 @@ def render_rays(models,
     xyz_coarse_sampled = rays_o.unsqueeze(1) + \
                          rays_d.unsqueeze(1) * z_vals.unsqueeze(2) # (N_rays, N_samples, 3)
 
-    rgb_coarse, depth_coarse, weights_coarse = \
-        inference(model_coarse, embedding_xyz, embedding_dir,
-                  xyz_coarse_sampled, rays_d, z_vals)
-
-    result = {'rgb_coarse': rgb_coarse,
-              'depth_coarse': depth_coarse,
-              'opacity_coarse': weights_coarse.sum(1)
-              }
+    if test_time:
+        weights_coarse = \
+            inference(model_coarse, embedding_xyz, xyz_coarse_sampled, rays_d,
+                      dir_embedded, z_vals, weights_only=True)
+        result = {'opacity_coarse': weights_coarse.sum(1)}
+    else:
+        rgb_coarse, depth_coarse, weights_coarse = \
+            inference(model_coarse, embedding_xyz, xyz_coarse_sampled, rays_d,
+                      dir_embedded, z_vals, weights_only=False)
+        result = {'rgb_coarse': rgb_coarse,
+                  'depth_coarse': depth_coarse,
+                  'opacity_coarse': weights_coarse.sum(1)
+                 }
 
     if N_importance > 0: # sample points for fine model
         z_vals_mid = 0.5 * (z_vals[: ,:-1] + z_vals[: ,1:]) # (N_rays, N_samples-1) interval mid points
@@ -212,8 +235,8 @@ def render_rays(models,
 
         model_fine = models[1]
         rgb_fine, depth_fine, weights_fine = \
-            inference(model_fine, embedding_xyz, embedding_dir,
-                      xyz_fine_sampled, rays_d, z_vals)
+            inference(model_fine, embedding_xyz, xyz_fine_sampled, rays_d,
+                      dir_embedded, z_vals, weights_only=False)
 
         result['rgb_fine'] = rgb_fine
         result['depth_fine'] = depth_fine

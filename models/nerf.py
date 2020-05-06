@@ -80,20 +80,28 @@ class NeRF(nn.Module):
                         nn.Linear(W//2, 3),
                         nn.Sigmoid())
 
-    def forward(self, x):
+    def forward(self, x, sigma_only=False):
         """
         Encodes input (xyz+dir) to rgb+sigma (not ready to render yet).
         For rendering this ray, please see rendering.py
 
         Inputs:
-            x: (B, self.in_channels_xyz+self.in_channels_dir)
+            x: (B, self.in_channels_xyz(+self.in_channels_dir))
                the embedded vector of position and direction
+            sigma_only: whether to infer sigma only. If True,
+                        x is of shape (B, self.in_channels_xyz)
 
         Outputs:
-            out: (B, 4), rgb and sigma
+            if sigma_ony:
+                sigma: (B, 1) sigma
+            else:
+                out: (B, 4), rgb and sigma
         """
-        input_xyz, input_dir = \
-            torch.split(x, [self.in_channels_xyz, self.in_channels_dir], dim=-1)
+        if not sigma_only:
+            input_xyz, input_dir = \
+                torch.split(x, [self.in_channels_xyz, self.in_channels_dir], dim=-1)
+        else:
+            input_xyz = x
 
         xyz_ = input_xyz
         for i in range(self.D):
@@ -102,6 +110,9 @@ class NeRF(nn.Module):
             xyz_ = getattr(self, f"xyz_encoding_{i+1}")(xyz_)
 
         sigma = self.sigma(xyz_)
+        if sigma_only:
+            return sigma
+
         xyz_encoding_final = self.xyz_encoding_final(xyz_)
 
         dir_encoding_input = torch.cat([xyz_encoding_final, input_dir], -1)

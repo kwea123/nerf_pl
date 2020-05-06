@@ -41,7 +41,7 @@ def get_opts():
                         help='number of additional fine samples')
     parser.add_argument('--use_disp', default=False, action="store_true",
                         help='use disparity depth sampling')
-    parser.add_argument('--chunk', type=int, default=32*1024,
+    parser.add_argument('--chunk', type=int, default=32*1024*4,
                         help='chunk size to split the input to avoid OOM')
 
     parser.add_argument('--ckpt_path', type=str, required=True,
@@ -73,7 +73,8 @@ def batched_inference(models, embeddings,
                         0,
                         N_importance,
                         chunk,
-                        dataset.white_back)
+                        dataset.white_back,
+                        test_time=True)
 
         for k, v in rendered_ray_chunks.items():
             results[k] += [v]
