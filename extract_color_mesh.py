@@ -71,7 +71,8 @@ def f(models, embeddings, rays, N_samples, chunk, white_back):
                         0,
                         0,
                         chunk,
-                        white_back)
+                        white_back,
+                        test_time=True)
 
         for k, v in rendered_ray_chunks.items():
             results[k] += [v]
