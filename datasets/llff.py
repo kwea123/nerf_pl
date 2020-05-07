@@ -174,10 +174,11 @@ class LLFFDataset(Dataset):
     def read_meta(self):
         poses_bounds = np.load(os.path.join(self.root_dir,
                                             'poses_bounds.npy')) # (N_images, 17)
-        self.image_paths = sorted(glob.glob(os.path.join(self.root_dir, 'images/*')))
-                      # load full resolution image then resize
-        assert len(poses_bounds) == len(self.image_paths), \
-            'Mismatch between number of images and number of poses! Please rerun COLMAP!'
+        if self.split in ['train', 'val']:
+            self.image_paths = sorted(glob.glob(os.path.join(self.root_dir, 'images/*')))
+                        # load full resolution image then resize
+            assert len(poses_bounds) == len(self.image_paths), \
+                'Mismatch between number of images and number of poses! Please rerun COLMAP!'
 
         poses = poses_bounds[:, :15].reshape(-1, 3, 5) # (N_images, 3, 5)
         self.bounds = poses_bounds[:, -2:] # (N_images, 2)
