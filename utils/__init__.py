@@ -56,24 +56,17 @@ def extract_model_state_dict(ckpt_path, model_name='model', prefixes_to_ignore=[
     checkpoint = torch.load(ckpt_path, map_location=torch.device('cpu'))
     checkpoint_ = {}
     if 'state_dict' in checkpoint: # if it's a pytorch-lightning checkpoint
-        for k, v in checkpoint['state_dict'].items():
-            if not k.startswith(model_name):
-                continue
-            k = k[len(model_name)+1:] # remove '{model_name}.'
-            for prefix in prefixes_to_ignore:
-                if k.startswith(prefix):
-                    print('ignore', k)
-                    break
-            else:
-                checkpoint_[k] = v
-    else: # if it only has model weights
-        for k, v in checkpoint.items():
-            for prefix in prefixes_to_ignore:
-                if k.startswith(prefix):
-                    print('ignore', k)
-                    break
-            else:
-                checkpoint_[k] = v
+        checkpoint = checkpoint['state_dict']
+    for k, v in checkpoint.items():
+        if not k.startswith(model_name):
+            continue
+        k = k[len(model_name)+1:]
+        for prefix in prefixes_to_ignore:
+            if k.startswith(prefix):
+                print('ignore', k)
+                break
+        else:
+            checkpoint_[k] = v
     return checkpoint_
 
 def load_ckpt(model, ckpt_path, model_name='model', prefixes_to_ignore=[]):
