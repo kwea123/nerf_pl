@@ -150,7 +150,7 @@ Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvE
 ## Testing without images
 The concept of NeRF is that the whole scene is compressed into a NeRF model, then we can render from any pose we want. To render from plausible poses, we can leverage the training poses; therefore, you can generate video with **only** the trained model and the poses. I provided my silica model in [release](https://github.com/kwea123/nerf_pl/releases), feel free to play around with it!
 
-If you trained some interesting scenes, you are also welcomed to share the model (and the `poses_bounds.npy`) by sending me an email! After all, a model is just around **5MB**! Please run `python save_weights_only.py --ckpt_path $YOUR_MODEL_PATH` to extract the final model.
+If you trained some interesting scenes, you are also welcomed to share the model (and the `poses_bounds.npy`) by sending me an email! After all, a model is just around **5MB**! Please run `python utils/save_weights_only.py --ckpt_path $YOUR_MODEL_PATH` to extract the final model.
 
 # Mesh
 
