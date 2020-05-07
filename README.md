@@ -11,7 +11,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 * [Colab](#colab) notebooks to allow easy usage!
 * [Reconstruct](#mesh) **colored** mesh!
 * [Mixed Reality](https://youtu.be/S5phWFTs2iM) in Unity! (code to be updated)
-* [Testing without images](#testing-without-images) to let you play with other people's scenes!
+* [Portable Scenes](#portable-scenes) to let you play with other people's scenes!
 
 ## Tutorial
 
@@ -147,8 +147,8 @@ Example of own scene ([Silica GGO figure](https://www.youtube.com/watch?v=hVQIvE
 <img src="https://user-images.githubusercontent.com/11364490/80813184-83f74680-8c04-11ea-8606-40580f753355.png" height="252">
 </p>
 
-## Testing without images
-The concept of NeRF is that the whole scene is compressed into a NeRF model, then we can render from any pose we want. To render from plausible poses, we can leverage the training poses; therefore, you can generate video with **only** the trained model and the poses. I provided my silica model in [release](https://github.com/kwea123/nerf_pl/releases), feel free to play around with it!
+## Portable scenes
+The concept of NeRF is that the whole scene is compressed into a NeRF model, then we can render from any pose we want. To render from plausible poses, we can leverage the training poses; therefore, you can generate video with **only** the trained model and the poses (hence the name of portable scenes). I provided my silica model in [release](https://github.com/kwea123/nerf_pl/releases), feel free to play around with it!
 
 If you trained some interesting scenes, you are also welcomed to share the model (and the `poses_bounds.npy`) by sending me an email, or post in issues! After all, a model is just around **5MB**! Please run `python utils/save_weights_only.py --ckpt_path $YOUR_MODEL_PATH` to extract the final model.
 
