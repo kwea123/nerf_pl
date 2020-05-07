@@ -56,9 +56,11 @@ This is the final result:
 <img src="https://user-images.githubusercontent.com/11364490/80813184-83f74680-8c04-11ea-8606-40580f753355.png" height="252">
 
 We can then export this `.ply` file to any other format, and embed in programs like I did in Unity:
-(I use [this plugin](https://github.com/keijiro/Pcx) to import `.ply` file to unity)
+(I use [this plugin](https://github.com/kwea123/Pcx) to import `.ply` file to unity, and made some modifications so that it can also read mesh triangles, not only the points)
 
 ![image](https://user-images.githubusercontent.com/11364490/80859833-9e7dfe00-8c9e-11ea-9fa1-ec48237e3873.png)
+
+The meshes can be attached a meshcollider so that then can interact with other objects. You can see [this video](https://youtu.be/I2M0xhnrBos) for a demo.
 
 ## Further reading
 The author suggested [another way](https://github.com/bmild/nerf/issues/44#issuecomment-622961303) to extract color, in my experiments it doesn't turn out to be good, but the idea is reasonable and interesting.
