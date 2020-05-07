@@ -60,7 +60,7 @@ We can then export this `.ply` file to any other format, and embed in programs l
 
 ![image](https://user-images.githubusercontent.com/11364490/80859833-9e7dfe00-8c9e-11ea-9fa1-ec48237e3873.png)
 
-The meshes can be attached a meshcollider so that then can interact with other objects. You can see [this video](https://youtu.be/I2M0xhnrBos) for a demo.
+The meshes can be attached a meshcollider so that they can interact with other objects. You can see [this video](https://youtu.be/I2M0xhnrBos) for a demo.
 
 ## Further reading
 The author suggested [another way](https://github.com/bmild/nerf/issues/44#issuecomment-622961303) to extract color, in my experiments it doesn't turn out to be good, but the idea is reasonable and interesting.
