@@ -49,6 +49,9 @@ def get_opts():
 
     parser.add_argument('--save_depth', default=False, action="store_true",
                         help='whether to save depth prediction')
+    parser.add_argument('--depth_format', type=str, default='pfm',
+                        choices=['pfm', 'bytes'],
+                        help='which format to save')
 
     return parser.parse_args()
 
@@ -125,7 +128,11 @@ if __name__ == "__main__":
         if args.save_depth:
             depth_pred = results['depth_fine'].view(h, w).cpu().numpy()
             depth_pred = np.nan_to_num(depth_pred)
-            save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
+            if args.depth_format == 'pfm':
+                save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
+            else:
+                with open(f'depth_{i:03d}.bytes', 'wb') as f:
+                    f.write(depth_pred.tobytes())
 
         img_pred_ = (img_pred*255).astype(np.uint8)
         imgs += [img_pred_]
