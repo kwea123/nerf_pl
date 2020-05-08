@@ -174,9 +174,9 @@ class LLFFDataset(Dataset):
     def read_meta(self):
         poses_bounds = np.load(os.path.join(self.root_dir,
                                             'poses_bounds.npy')) # (N_images, 17)
-        if self.split in ['train', 'val']:
-            self.image_paths = sorted(glob.glob(os.path.join(self.root_dir, 'images/*')))
+        self.image_paths = sorted(glob.glob(os.path.join(self.root_dir, 'images/*')))
                         # load full resolution image then resize
+        if self.split in ['train', 'val']:
             assert len(poses_bounds) == len(self.image_paths), \
                 'Mismatch between number of images and number of poses! Please rerun COLMAP!'
 
@@ -222,6 +222,9 @@ class LLFFDataset(Dataset):
                 c2w = torch.FloatTensor(self.poses[i])
 
                 img = Image.open(image_path)
+                assert img.size[1]*self.img_wh[0] == img.size[0]*self.img_wh[1], \
+                    f'''{image_path} has different aspect ratio than img_wh, 
+                        please check your data!'''
                 img = img.resize(self.img_wh, Image.LANCZOS)
                 img = self.transform(img) # (3, h, w)
                 img = img.view(3, -1).permute(1, 0) # (h*w, 3) RGB
@@ -290,7 +293,7 @@ class LLFFDataset(Dataset):
             if not self.spheric_poses:
                 near, far = 0, 1
                 rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
-                                              self.focal, 1.0, rays_o, rays_d)
+                                                self.focal, 1.0, rays_o, rays_d)
             else:
                 near = self.bounds.min()
                 far = min(8 * near, self.bounds.max())
