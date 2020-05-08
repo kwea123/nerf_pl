@@ -168,6 +168,7 @@ I also prepared colab notebooks that allow you to run the algorithm on any machi
 
 *  [colmap](https://gist.github.com/kwea123/f0e8f38ff2aa94495dbfe7ae9219f75c) to prepare camera poses for your own training data
 *  [nerf](https://gist.github.com/kwea123/a3c541a325e895ef79ecbc0d2e6d7221) to train on your data
+*  [extract_mesh](https://gist.github.com/kwea123/77ed1640f9bc9550136dc13a6a419e88) to extract colored mesh
 
 Please see [this video](https://youtu.be/TQj-KUQophI) for the detailed tutorial.
 
