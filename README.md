@@ -170,7 +170,7 @@ I also prepared colab notebooks that allow you to run the algorithm on any machi
 *  [nerf](https://gist.github.com/kwea123/a3c541a325e895ef79ecbc0d2e6d7221) to train on your data
 *  [extract_mesh](https://gist.github.com/kwea123/77ed1640f9bc9550136dc13a6a419e88) to extract colored mesh
 
-Please see [this video](https://youtu.be/TQj-KUQophI) for the detailed tutorial.
+Please see [this playlist](https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV) for the detailed tutorials.
 
 # TODO
 - [ ] Test multigpu for llff data with 1 val image only across 8 gpus..
