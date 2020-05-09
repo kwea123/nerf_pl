@@ -1,7 +1,7 @@
 # Reconstruct mesh
 
 Use `extract_mesh.ipynb` (the notebook, **not** the py script) to extract **colored** mesh. The guideline for choosing good parameters is commented in the notebook.
-Here, I'll give detailed explanation of how it works. There is also a [video] that explains the same thing.
+Here, I'll give detailed explanation of how it works. There is also a [video](https://youtu.be/t06qu-gXrxA) that explains the same thing.
 
 ## Step 1. Predict occupancy
 
