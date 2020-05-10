@@ -11,6 +11,7 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 * [Colab](#colab) notebooks to allow easy usage!
 * [Reconstruct](#mesh) **colored** mesh!
 * [Mixed Reality](https://youtu.be/S5phWFTs2iM) in Unity! (code to be updated)
+* [REAL TIME volume rendering](https://youtu.be/S5phWFTs2iM) in Unity! (code to be updated)
 * [Portable Scenes](#portable-scenes) to let you play with other people's scenes!
 
 ## Tutorial
