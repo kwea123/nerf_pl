@@ -157,15 +157,17 @@ def create_spheric_poses(radius, n_poses=120):
 
 
 class LLFFDataset(Dataset):
-    def __init__(self, root_dir, split='train', img_wh=(504, 378), spheric_poses=False):
+    def __init__(self, root_dir, split='train', img_wh=(504, 378), spheric_poses=False, val_num=1):
         """
         spheric_poses: whether the images are taken in a spheric inward-facing manner
                        default: False (forward-facing)
+        val_num: number of val images (used for multigpu training, validate same image for all gpus)
         """
         self.root_dir = root_dir
         self.split = split
         self.img_wh = img_wh
         self.spheric_poses = spheric_poses
+        self.val_num = max(1, val_num) # at least 1
         self.define_transforms()
 
         self.read_meta()
@@ -275,7 +277,7 @@ class LLFFDataset(Dataset):
         if self.split == 'train':
             return len(self.all_rays)
         if self.split == 'val':
-            return 1 # only validate one image
+            return self.val_num
         return len(self.poses_test)
 
     def __getitem__(self, idx):
@@ -293,7 +295,7 @@ class LLFFDataset(Dataset):
             if not self.spheric_poses:
                 near, far = 0, 1
                 rays_o, rays_d = get_ndc_rays(self.img_wh[1], self.img_wh[0],
-                                                self.focal, 1.0, rays_o, rays_d)
+                                              self.focal, 1.0, rays_o, rays_d)
             else:
                 near = self.bounds.min()
                 far = min(8 * near, self.bounds.max())

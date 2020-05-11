@@ -76,6 +76,7 @@ class NeRFSystem(LightningModule):
                   'img_wh': tuple(self.hparams.img_wh)}
         if self.hparams.dataset_name == 'llff':
             kwargs['spheric_poses'] = self.hparams.spheric_poses
+            kwargs['val_num'] = self.hparams.num_gpus
         self.train_dataset = dataset(split='train', **kwargs)
         self.val_dataset = dataset(split='val', **kwargs)
 
