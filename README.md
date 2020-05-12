@@ -174,4 +174,4 @@ I also prepared colab notebooks that allow you to run the algorithm on any machi
 Please see [this playlist](https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV) for the detailed tutorials.
 
 # TODO
-- [ ] Test multigpu for llff data with 1 val image only across 8 gpus..
+- [ ] Exclude bad images for llff training
