@@ -161,7 +161,7 @@ if __name__ == '__main__':
                                                                 '{epoch:d}'),
                                           monitor='val/loss',
                                           mode='min',
-                                          save_top_k=50,)
+                                          save_top_k=5,)
 
     logger = TestTubeLogger(
         save_dir="logs",
