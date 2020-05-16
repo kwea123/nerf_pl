@@ -7,9 +7,9 @@
 <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
 # Author
-Quei-An Chen (kwea123)
+Quei-An Chen (kwea123). Photo credits: Ben Mildenhall ([bmild](https://github.com/bmild))
 
-# 360 view synthesis
+# 360 degree view synthesis
 <div class="nerf_mp4">
   <video autoplay controls loop>
     <source src="https://storage.cloud.google.com/kwea123_dataset/nerf/pond.mp4" type="video/mp4">
@@ -43,22 +43,26 @@ $(document).ready(function(){
 
 <br/>
 
-# Real time volume rendering with Unity
-[Volume rendering](https://en.wikipedia.org/wiki/Volume_rendering) is a technique that doesn't require "real object". The model you see here is composed by rays, so we can cut off parts to see internal structures, also perform deforming effect in real time.
-<iframe src="https://i.simmer.io/@kwea123/nerf-volume-rendering" style="width:960px;height:600px"></iframe>
+# Real time volume rendering in Unity
+[Volume rendering](https://en.wikipedia.org/wiki/Volume_rendering) is a technique that doesn't require "real object". The model you see here is composed of rays, so we can cut off parts to see internal structures, also perform deforming effect in real time.
+<iframe src="https://i.simmer.io/@kwea123/nerf-volume-rendering" style="width:960px;height:600px;"></iframe>
 
 <br/>
 
 # Colored mesh reconstruction (photogrammetry)
 We can also generate real colored mesh that allows the object to interact with other physical objects.
-<iframe src="https://i.simmer.io/@kwea123/nerf-mesh" style="width:960px;height:600px"></iframe>
+<iframe src="https://i.simmer.io/@kwea123/nerf-mesh" style="width:960px;height:600px;"></iframe>
 
-------------------------------------------------------------------------------------------------------------
+<br/>
+
+# Mixed reality in Unity (to be updated)
+
+<br/>
 
 # Tutorial
 
 I also have tutorials on how to achieve above results using google colab:
 
 <a href="https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV">
-<img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png" style="width:960px;">
+<img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png" style="display:block;margin:auto;">
 </a>
