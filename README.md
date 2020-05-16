@@ -1,9 +1,10 @@
 # nerf_pl
+
+### [**Project page**](https://kwea123.github.io/nerf_pl/) (live demo!)
+
 Unofficial implementation of [NeRF](https://arxiv.org/pdf/2003.08934.pdf) (Neural Radiance Fields) using [pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning). This repo doesn't aim at reproducibility, but aim at providing a simpler and faster training procedure (also simpler code with detailed comments to help to understand the work).
 
-Official implementation: [nerf](https://github.com/bmild/nerf)
-
-Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/nerf-pytorch)
+Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/nerf-pytorch)
 
 ## Features
 
@@ -15,6 +16,9 @@ Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/n
 * [Portable Scenes](#portable-scenes) to let you play with other people's scenes!
 
 ## Tutorial
+
+### What can NeRF do?
+<img src="https://user-images.githubusercontent.com/11364490/82124460-1ccbbb80-97da-11ea-88ad-25e22868a5c1.png" style="max-width:100%">
 
 <a href="https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV">
 <img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png">
@@ -44,7 +48,9 @@ Please see each subsection for training on different datasets. Available trainin
 * [Your own data](#your-own-data) (Forward-Facing/360 inward-facing)
 
 ## Blender
-
+<details>
+  <summary>Steps</summary>
+   
 ### Data download
 
 Download `nerf_synthetic.zip` from [here](https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1)
@@ -66,9 +72,12 @@ python train.py \
 These parameters are chosen to best mimic the training settings in the original repo. See [opt.py](opt.py) for all configurations.
 
 You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
+</details>
 
 ## LLFF
-
+<details>
+  <summary>Steps</summary>
+   
 ### Data download
 
 Download `nerf_llff_data.zip` from [here](https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1)
@@ -90,15 +99,19 @@ python train.py \
 These parameters are chosen to best mimic the training settings in the original repo. See [opt.py](opt.py) for all configurations.
 
 You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
+</details>
 
 ## Your own data
-
+<details>
+  <summary>Steps</summary>
+   
 1. Install [COLMAP](https://github.com/colmap/colmap) following [installation guide](https://colmap.github.io/install.html)
 2. Prepare your images in a folder (around 20 to 30 for forward facing, and 40 to 50 for 360 inward-facing)
 3. Clone [LLFF](https://github.com/Fyusion/LLFF) and run `python img2poses.py $your-images-folder`
 4. Train the model as in [LLFF](#llff). If the scene is captured in a 360 inward-facing manner, add `--spheric` argument.
 
 For more details of training a good model, please see the video [here](#colab).
+</details>
 
 ## Pretrained models and logs
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
@@ -174,4 +187,4 @@ I also prepared colab notebooks that allow you to run the algorithm on any machi
 Please see [this playlist](https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV) for the detailed tutorials.
 
 # TODO
-- [ ]
+- [ ] Add unity code somewhere
