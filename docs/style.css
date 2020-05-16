@@ -1,3 +1,25 @@
 #main_content {
     max-width: 960px;
 }
+
+.slick-slide {
+    margin: 0 10px;
+  }
+
+.slick-prev{
+    left: -40px;
+}
+
+.slick-prev:before {
+    font-size: 40px;
+    color: blueviolet;
+}
+.slick-next:before {
+    font-size: 40px;
+    color: blueviolet;
+}
+
+.slick-dots li button:before{
+    font-size: 20px;
+    line-height: 20px;
+}

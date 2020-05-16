@@ -10,39 +10,55 @@
 Quei-An Chen (kwea123)
 
 # 360 view synthesis
-<div class="your-class">
-  <video width="320" height="240" controls>
-    <source src="movie.mp4" type="video/mp4">
-    <source src="movie.ogg" type="video/ogg">
-  Your browser does not support the video tag.
-  </video> 
-  <div>your contentfasfasfafff</div>
-  <div>your content</div>
-  <div>your content</div>
-  <div>your content</div>
+<div class="nerf_mp4">
+  <video autoplay controls loop>
+    <source src="https://storage.cloud.google.com/kwea123_dataset/nerf/pond.mp4" type="video/mp4">
+  </video>
+  <video autoplay controls loop>
+    <source src="https://storage.cloud.google.com/kwea123_dataset/nerf/trex.mp4" type="video/mp4">
+  </video>
+  <video autoplay controls loop>
+    <source src="https://storage.cloud.google.com/kwea123_dataset/nerf/horns.mp4" type="video/mp4">
+  </video>
+  <video autoplay controls loop>
+    <source src="https://storage.cloud.google.com/kwea123_dataset/nerf/silica2.mp4" type="video/mp4">
+  </video>
+  <video autoplay controls loop>
+    <source src="https://storage.cloud.google.com/kwea123_dataset/nerf/duorou.mp4" type="video/mp4">
+  </video>
 </div>
 
 <script>
 $(document).ready(function(){
-  $('.your-class').slick({
+  $('.nerf_mp4').slick({
     slidesToShow: 3,
     slidesToScroll: 1,
+    dots: true,
     autoplay: true,
-    autoplaySpeed: 2000,
+    autoplaySpeed: 3000,
+    infinite: true,
   });
 });
 </script>
 
+<br/>
+
 # Real time volume rendering with Unity
+[Volume rendering](https://en.wikipedia.org/wiki/Volume_rendering) is a technique that doesn't require "real object". The model you see here is composed by rays, so we can cut off parts to see internal structures, also perform deforming effect in real time.
 <iframe src="https://i.simmer.io/@kwea123/nerf-volume-rendering" style="width:960px;height:600px"></iframe>
 
+<br/>
+
 # Colored mesh reconstruction (photogrammetry)
+We can also generate real colored mesh that allows the object to interact with other physical objects.
 <iframe src="https://i.simmer.io/@kwea123/nerf-mesh" style="width:960px;height:600px"></iframe>
 
-
+------------------------------------------------------------------------------------------------------------
 
 # Tutorial
 
+I also have tutorials on how to achieve above results using google colab:
+
 <a href="https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV">
-<img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png">
+<img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png" style="width:960px;">
 </a>
