@@ -1,9 +1,10 @@
 # nerf_pl
+
+### [**Project page**](https://kwea123.github.io/nerf_pl/) (live demo!)
+
 Unofficial implementation of [NeRF](https://arxiv.org/pdf/2003.08934.pdf) (Neural Radiance Fields) using [pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning). This repo doesn't aim at reproducibility, but aim at providing a simpler and faster training procedure (also simpler code with detailed comments to help to understand the work).
 
-Official implementation: [nerf](https://github.com/bmild/nerf)
-
-Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/nerf-pytorch)
+Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/nerf-pytorch)
 
 ## Features
 
@@ -44,7 +45,9 @@ Please see each subsection for training on different datasets. Available trainin
 * [Your own data](#your-own-data) (Forward-Facing/360 inward-facing)
 
 ## Blender
-
+<details>
+  <summary>Steps</summary>
+   
 ### Data download
 
 Download `nerf_synthetic.zip` from [here](https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1)
@@ -66,9 +69,12 @@ python train.py \
 These parameters are chosen to best mimic the training settings in the original repo. See [opt.py](opt.py) for all configurations.
 
 You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
+</details>
 
 ## LLFF
-
+<details>
+  <summary>Steps</summary>
+   
 ### Data download
 
 Download `nerf_llff_data.zip` from [here](https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1)
@@ -90,6 +96,7 @@ python train.py \
 These parameters are chosen to best mimic the training settings in the original repo. See [opt.py](opt.py) for all configurations.
 
 You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
+</details>
 
 ## Your own data
 
