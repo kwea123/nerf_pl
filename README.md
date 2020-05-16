@@ -184,4 +184,4 @@ I also prepared colab notebooks that allow you to run the algorithm on any machi
 Please see [this playlist](https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV) for the detailed tutorials.
 
 # TODO
-- [ ]
+- [ ] A
