@@ -6,8 +6,13 @@
 <script type="text/javascript" src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
-# Author
-Quei-An Chen (kwea123). Photo credits: Ben Mildenhall ([bmild](https://github.com/bmild))
+# Author of this implementation
+Quei-An Chen ([kwea123](https://github.com/kwea123)). Original author and photo credits: Ben Mildenhall ([bmild](https://github.com/bmild))
+
+# What can NeRF do?
+<img src="https://user-images.githubusercontent.com/11364490/82124460-1ccbbb80-97da-11ea-88ad-25e22868a5c1.png" style="max-width:100%">
+
+<br/>
 
 # 360 degree view synthesis
 <div class="nerf_mp4">
@@ -43,15 +48,15 @@ $(document).ready(function(){
 
 <br/>
 
-# Real time volume rendering in Unity
-[Volume rendering](https://en.wikipedia.org/wiki/Volume_rendering) is a technique that doesn't require "real object". The model you see here is composed of rays, so we can cut off parts to see internal structures, also perform deforming effect in real time.
-<iframe src="https://i.simmer.io/@kwea123/nerf-volume-rendering" style="width:960px;height:600px;"></iframe>
+# Colored 3D mesh reconstruction (photogrammetry)
+We can generate real colored mesh that allows the object to interact with other physical objects.
+<iframe src="https://i.simmer.io/@kwea123/nerf-mesh" style="width:960px;height:600px;"></iframe>
 
 <br/>
 
-# Colored mesh reconstruction (photogrammetry)
-We can also generate real colored mesh that allows the object to interact with other physical objects.
-<iframe src="https://i.simmer.io/@kwea123/nerf-mesh" style="width:960px;height:600px;"></iframe>
+# Real time volume rendering in Unity
+[Volume rendering](https://en.wikipedia.org/wiki/Volume_rendering) is a technique that doesn't require "real object". The model you see here is composed of rays, so we can cut off parts to see internal structures, also perform deforming effect in real time.
+<iframe src="https://i.simmer.io/@kwea123/nerf-volume-rendering" style="width:960px;height:600px;"></iframe>
 
 <br/>
 
