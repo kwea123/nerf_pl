@@ -34,10 +34,10 @@ $(document).ready(function(){
 </script>
 
 # Real time volume rendering with Unity
-<!-- <iframe src="https://i.simmer.io/@kwea123/nerf-volume-rendering" style="width:960px;height:600px"></iframe> -->
+<iframe src="https://i.simmer.io/@kwea123/nerf-volume-rendering" style="width:960px;height:600px"></iframe>
 
 # Colored mesh reconstruction (photogrammetry)
-<!-- <iframe src="https://i.simmer.io/@kwea123/nerf-mesh" style="width:960px;height:600px"></iframe> -->
+<iframe src="https://i.simmer.io/@kwea123/nerf-mesh" style="width:960px;height:600px"></iframe>
 
 
 
