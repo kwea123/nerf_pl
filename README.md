@@ -20,6 +20,7 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
 ### What can NeRF do?
 <img src="https://user-images.githubusercontent.com/11364490/82124460-1ccbbb80-97da-11ea-88ad-25e22868a5c1.png" style="max-width:100%">
 
+### Tutorial videos
 <a href="https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV">
 <img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png">
 </a>
