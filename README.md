@@ -119,7 +119,7 @@ Download the pretrained models and training logs in [release](https://github.com
 
 ## Comparison with other repos
 
-|           | GPU mem in GB <br> (train) | Speed (1 step) |
+|           | training GPU memory in GB | Speed (1 step) |
 | :---:     |  :---:     | :---:   | 
 | [Original](https://github.com/bmild/nerf)  |  8.5 | 0.177s |
 | [Ref pytorch](https://github.com/yenchenlin/nerf-pytorch)  |  6.0 | 0.147s |
