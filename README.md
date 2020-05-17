@@ -72,6 +72,8 @@ python train.py \
 
 These parameters are chosen to best mimic the training settings in the original repo. See [opt.py](opt.py) for all configurations.
 
+NOTE: the above configuration doesn't work for some scenes like `drums`, `ship`. In that case, consider increasing the `batch_size` or change the `optimizer` to `radam`. I managed to train on all scenes with these modifications.
+
 You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
 </details>
 
