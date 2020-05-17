@@ -9,8 +9,8 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
 ## :milky_way: Features
 
 * Multi-gpu training: Training on 8 GPUs finishes within 1 hour for the synthetic dataset!
-* [Colab](#colab) notebooks to allow easy usage!
-* [Reconstruct](#mesh) **colored** mesh!
+* [Colab](#mortar_board-colab) notebooks to allow easy usage!
+* [Reconstruct](#ribbon-mesh) **colored** mesh!
 * [Mixed Reality](https://youtu.be/S5phWFTs2iM) in Unity! (code to be updated)
 * [REAL TIME volume rendering](https://youtu.be/w9qTbVzCdWk) in Unity! (code to be updated)
 * [Portable Scenes](#portable-scenes) to let you play with other people's scenes!
