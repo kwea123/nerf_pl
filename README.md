@@ -15,7 +15,7 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
 * [REAL TIME volume rendering](https://youtu.be/w9qTbVzCdWk) in Unity! (code to be updated)
 * [Portable Scenes](#portable-scenes) to let you play with other people's scenes!
 
-## :mortar_board: Tutorial
+## :beginner: Tutorial
 
 ### What can NeRF do?
 <img src="https://user-images.githubusercontent.com/11364490/82124460-1ccbbb80-97da-11ea-88ad-25e22868a5c1.png" style="max-width:100%">
@@ -171,13 +171,13 @@ If you trained some interesting scenes, you are also welcomed to share the model
 
 See [README_mesh](README_mesh.md) for reconstruction of **colored** mesh. Only supported for blender dataset and 360 inward-facing data!
 
-# Notes on differences with the original repo
+# :warning: Notes on differences with the original repo
 
 *  The learning rate decay in the original repo is **by step**, which means it decreases every step, here I use learning rate decay **by epoch**, which means it changes only at the end of 1 epoch.
 *  The validation image for LLFF dataset is chosen as the most centered image here, whereas the original repo chooses every 8th image.
 *  The rendering spiral path is slightly different from the original repo (I use approximate values to simplify the code).
 
-# COLAB
+# :mortar_board: COLAB
 
 I also prepared colab notebooks that allow you to run the algorithm on any machine without GPU requirement.
 
@@ -187,5 +187,5 @@ I also prepared colab notebooks that allow you to run the algorithm on any machi
 
 Please see [this playlist](https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV) for the detailed tutorials.
 
-# TODO
+# :jack_o_lantern: TODO
 - [ ] Add unity code somewhere
