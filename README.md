@@ -1,12 +1,12 @@
 # nerf_pl
 
-### [**Project page**](https://kwea123.github.io/nerf_pl/) (live demo!)
+### :gem: [**Project page**](https://kwea123.github.io/nerf_pl/) (live demo!)
 
 Unofficial implementation of [NeRF](https://arxiv.org/pdf/2003.08934.pdf) (Neural Radiance Fields) using [pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning). This repo doesn't aim at reproducibility, but aim at providing a simpler and faster training procedure (also simpler code with detailed comments to help to understand the work). Moreover, I try to extend much more opportunities by integrating this algorithm into game engine like Unity.
 
 Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/nerf-pytorch)
 
-## Features
+## :milky_way: Features
 
 * Multi-gpu training: Training on 8 GPUs finishes within 1 hour for the synthetic dataset!
 * [Colab](#colab) notebooks to allow easy usage!
@@ -15,7 +15,7 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
 * [REAL TIME volume rendering](https://youtu.be/w9qTbVzCdWk) in Unity! (code to be updated)
 * [Portable Scenes](#portable-scenes) to let you play with other people's scenes!
 
-## Tutorial
+## :mortar_board: Tutorial
 
 ### What can NeRF do?
 <img src="https://user-images.githubusercontent.com/11364490/82124460-1ccbbb80-97da-11ea-88ad-25e22868a5c1.png" style="max-width:100%">
@@ -25,7 +25,7 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
 <img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png">
 </a>
    
-# Installation
+# :computer: Installation
 
 ## Hardware
 
@@ -40,7 +40,7 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
     * Install core requirements by `pip install -r requirements.txt`
     * Install `torchsearchsorted` by `cd torchsearchsorted` then `pip install .`
     
-# Training
+# :key: Training
 
 Please see each subsection for training on different datasets. Available training datasets:
 
@@ -128,7 +128,7 @@ Download the pretrained models and training logs in [release](https://github.com
 The speed is measured on 1 RTX2080Ti. Detailed profile can be found in [release](https://github.com/kwea123/nerf_pl/releases).
 Training memory is largely reduced, since the original repo loads the whole data to GPU at the beginning, while we only pass batches to GPU every step.
 
-# Testing
+# :mag_right: Testing
 
 See [test.ipynb](test.ipynb) for a simple view synthesis and depth prediction on 1 image.
 
@@ -167,7 +167,7 @@ The concept of NeRF is that the whole scene is compressed into a NeRF model, the
 
 If you trained some interesting scenes, you are also welcomed to share the model (and the `poses_bounds.npy`) by sending me an email, or post in issues! After all, a model is just around **5MB**! Please run `python utils/save_weights_only.py --ckpt_path $YOUR_MODEL_PATH` to extract the final model.
 
-# Mesh
+# :ribbon: Mesh
 
 See [README_mesh](README_mesh.md) for reconstruction of **colored** mesh. Only supported for blender dataset and 360 inward-facing data!
 
