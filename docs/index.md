@@ -8,8 +8,9 @@
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 
 # Author of this implementation
-### If you find my work helpful, please consider star this project!
-<a class="github-button" href="https://github.com/kwea123/nerf_pl" data-icon="octicon-star" aria-label="Star ntkme/github-buttons on GitHub">Star</a>
+<h3>If you find my work helpful, please consider star this project!
+  <a class="github-button" href="https://github.com/kwea123/nerf_pl" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kwea123/nerf_pl on GitHub">Star</a>
+</h3>
 
 Quei-An Chen ([kwea123](https://github.com/kwea123)). Original author and photo credits: Ben Mildenhall ([bmild](https://github.com/bmild))
 
@@ -52,7 +53,7 @@ $(document).ready(function(){
 
 <br/>
 
-# Colored 3D mesh reconstruction (photogrammetry)
+<!-- # Colored 3D mesh reconstruction (photogrammetry)
 We can generate real colored mesh that allows the object to interact with other physical objects.
 <iframe src="https://i.simmer.io/@kwea123/nerf-mesh" style="width:960px;height:600px;"></iframe>
 
@@ -62,7 +63,7 @@ We can generate real colored mesh that allows the object to interact with other 
 [Volume rendering](https://en.wikipedia.org/wiki/Volume_rendering) is a technique that doesn't require "real object". The model you see here is composed of rays, so we can cut off parts to see internal structures, also perform deforming effect in real time.
 <iframe src="https://i.simmer.io/@kwea123/nerf-volume-rendering" style="width:960px;height:600px;"></iframe>
 
-<br/>
+<br/> -->
 
 # Mixed reality in Unity (to be updated)
 
