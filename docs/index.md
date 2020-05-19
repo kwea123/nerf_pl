@@ -53,7 +53,7 @@ $(document).ready(function(){
 
 <br/>
 
-<!-- # Colored 3D mesh reconstruction (photogrammetry)
+# Colored 3D mesh reconstruction (photogrammetry)
 We can generate real colored mesh that allows the object to interact with other physical objects.
 <iframe src="https://i.simmer.io/@kwea123/nerf-mesh" style="width:960px;height:600px;"></iframe>
 
@@ -63,7 +63,7 @@ We can generate real colored mesh that allows the object to interact with other 
 [Volume rendering](https://en.wikipedia.org/wiki/Volume_rendering) is a technique that doesn't require "real object". The model you see here is composed of rays, so we can cut off parts to see internal structures, also perform deforming effect in real time.
 <iframe src="https://i.simmer.io/@kwea123/nerf-volume-rendering" style="width:960px;height:600px;"></iframe>
 
-<br/> -->
+<br/>
 
 # Mixed reality in Unity (to be updated)
 
