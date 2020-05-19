@@ -76,3 +76,6 @@ I also have tutorials on how to achieve above results using google colab:
 <a href="https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV">
 <img src="https://user-images.githubusercontent.com/11364490/80913471-d5781080-8d7f-11ea-9f72-9d68402b8271.png" style="display:block;margin:auto;">
 </a>
+
+# Call for contribution
+If you are expert in Unity and know how to make more visual appealing effects for the models shown above, feel free to contact me! I can share my code and data with you, and put your name on my github page!
