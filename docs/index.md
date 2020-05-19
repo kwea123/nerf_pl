@@ -5,9 +5,11 @@
 <script type="text/javascript" src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 <script type="text/javascript" src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
 
 # Author of this implementation
 ### If you find my work helpful, please consider star this project!
+<a class="github-button" href="https://github.com/kwea123/nerf_pl" data-icon="octicon-star" aria-label="Star ntkme/github-buttons on GitHub">Star</a>
 
 Quei-An Chen ([kwea123](https://github.com/kwea123)). Original author and photo credits: Ben Mildenhall ([bmild](https://github.com/bmild))
 
