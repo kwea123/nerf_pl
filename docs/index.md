@@ -65,8 +65,10 @@ We can generate real colored mesh that allows the object to interact with other 
 
 <br/>
 
-# Mixed reality in Unity (to be updated)
+# Mixed reality in Unity (doesn't work on FireFox, please use Chrome)
+Accurate depth allows us to embed virtual object inside real scenes with correct z-order.
 
+<iframe src="https://i.simmer.io/@kwea123/nerf-mixed-reality" style="width:960px;height:600px;"></iframe>
 <br/>
 
 # Tutorial
