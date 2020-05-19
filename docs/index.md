@@ -7,6 +7,8 @@
 <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
 # Author of this implementation
+### If you find my work helpful, please consider star this project!
+
 Quei-An Chen ([kwea123](https://github.com/kwea123)). Original author and photo credits: Ben Mildenhall ([bmild](https://github.com/bmild))
 
 # What can NeRF do?
