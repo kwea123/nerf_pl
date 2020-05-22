@@ -11,9 +11,13 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
 * Multi-gpu training: Training on 8 GPUs finishes within 1 hour for the synthetic dataset!
 * [Colab](#mortar_board-colab) notebooks to allow easy usage!
 * [Reconstruct](#ribbon-mesh) **colored** mesh!
-* [Mixed Reality](https://youtu.be/S5phWFTs2iM) in Unity! (code to be updated)
-* [REAL TIME volume rendering](https://youtu.be/w9qTbVzCdWk) in Unity! (code to be updated)
+* [Mixed Reality](https://youtu.be/S5phWFTs2iM) in Unity!
+* [REAL TIME volume rendering](https://youtu.be/w9qTbVzCdWk) in Unity!
 * [Portable Scenes](#portable-scenes) to let you play with other people's scenes!
+
+You can find the Unity project including mesh, mixed reality and volume rendering [here](https://github.com/kwea123/nerf_Unity)!
+
+I will add code to generate your data for mixed reality and volume rendering in the future.
 
 ## :beginner: Tutorial
 
