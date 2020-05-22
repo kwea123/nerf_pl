@@ -17,7 +17,7 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
 
 You can find the Unity project including mesh, mixed reality and volume rendering [here](https://github.com/kwea123/nerf_Unity)!
 
-I will add code to generate your data for mixed reality and volume rendering in the future.
+I will add code to allow you to generate your data for mixed reality and volume rendering in the future.
 
 ## :beginner: Tutorial
 
