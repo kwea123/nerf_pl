@@ -3,6 +3,7 @@ logs/
 ckpts/
 results/
 *.ply
+*.vol
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

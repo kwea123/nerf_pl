@@ -131,7 +131,7 @@ if __name__ == "__main__":
             if args.depth_format == 'pfm':
                 save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
             else:
-                with open(f'depth_{i:03d}.bytes', 'wb') as f:
+                with open(f'depth_{i:03d}', 'wb') as f:
                     f.write(depth_pred.tobytes())
 
         img_pred_ = (img_pred*255).astype(np.uint8)
