@@ -105,12 +105,10 @@ class NeRFSystem(LightningModule):
         rays, rgbs = self.decode_batch(batch)
         results = self(rays)
         log['train/loss'] = loss = self.loss(results, rgbs)
+        typ = 'fine' if 'rgb_fine' in results else 'coarse'
 
         with torch.no_grad():
-            if 'rgb_fine' in results:
-                psnr_ = psnr(results['rgb_fine'], rgbs)
-            else:
-                psnr_ = psnr(results['rgb_coarse'], rgbs)
+            psnr_ = psnr(results[f'rgb_{typ}'], rgbs)
             log['train/psnr'] = psnr_
 
         return {'loss': loss,
@@ -124,21 +122,19 @@ class NeRFSystem(LightningModule):
         rgbs = rgbs.squeeze() # (H*W, 3)
         results = self(rays)
         log = {'val_loss': self.loss(results, rgbs)}
+        typ = 'fine' if 'rgb_fine' in results else 'coarse'
     
         if batch_nb == 0:
             W, H = self.hparams.img_wh
-            img_fine = results['rgb_fine'].view(H, W, 3).cpu()
-            img_fine = img_fine.permute(2, 0, 1) # (3, H, W)
+            img = results[f'rgb_{typ}'].view(H, W, 3).cpu()
+            img = img.permute(2, 0, 1) # (3, H, W)
             img_gt = rgbs.view(H, W, 3).permute(2, 0, 1).cpu() # (3, H, W)
-            depth = visualize_depth(results['depth_fine'].view(H, W)) # (3, H, W)
-            stack = torch.stack([img_gt, img_fine, depth]) # (3, 3, H, W)
+            depth = visualize_depth(results[f'depth_{typ}'].view(H, W)) # (3, H, W)
+            stack = torch.stack([img_gt, img, depth]) # (3, 3, H, W)
             self.logger.experiment.add_images('val/GT_pred_depth',
                                                stack, self.global_step)
 
-        if 'rgb_fine' in results:
-            psnr_ = psnr(results['rgb_fine'], rgbs)
-        else:
-            psnr_ = psnr(results['rgb_coarse'], rgbs)
+        psnr_ = psnr(results[f'rgb_{typ}'], rgbs)
         log['val_psnr'] = psnr_
 
         return log

@@ -249,7 +249,7 @@ class LLFFDataset(Dataset):
                                              far*torch.ones_like(rays_o[:, :1])],
                                              1)] # (h*w, 8)
                                  
-            self.all_rays = torch.cat(self.all_rays, 0) # ((N_images-1)*h*w, 3)
+            self.all_rays = torch.cat(self.all_rays, 0) # ((N_images-1)*h*w, 8)
             self.all_rgbs = torch.cat(self.all_rgbs, 0) # ((N_images-1)*h*w, 3)
         
         elif self.split == 'val':
