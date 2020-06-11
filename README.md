@@ -145,6 +145,7 @@ python eval.py \
    --img_wh 400 400 --N_importance 64 --ckpt_path $CKPT_PATH
 ```
 **IMPORTANT** : Don't forget to add `--spheric_poses` if the model is trained under `--spheric` setting!
+
 It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
 Example of lego scene using pretrained model and the reconstructed **colored** mesh: (PSNR=31.39, paper=32.54)
