@@ -134,9 +134,7 @@ class NeRFSystem(LightningModule):
             self.logger.experiment.add_images('val/GT_pred_depth',
                                                stack, self.global_step)
 
-        psnr_ = psnr(results[f'rgb_{typ}'], rgbs)
-        log['val_psnr'] = psnr_
-
+        log['val_psnr'] = psnr(results[f'rgb_{typ}'], rgbs)
         return log
 
     def validation_epoch_end(self, outputs):

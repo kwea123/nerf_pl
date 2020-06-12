@@ -114,7 +114,7 @@ if __name__ == "__main__":
     xmin, xmax = args.x_range
     ymin, ymax = args.y_range
     zmin, zmax = args.z_range
-    assert xmax-xmin == ymax-ymin == zmax-zmin, 'the ranges must have the same length!'
+    # assert xmax-xmin == ymax-ymin == zmax-zmin, 'the ranges must have the same length!'
     x = np.linspace(xmin, xmax, N)
     y = np.linspace(ymin, ymax, N)
     z = np.linspace(zmin, zmax, N)
@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
         # Step 2. project the vertices onto each training image to infer the color
         print('Fusing colors ...')
-        for idx in tqdm(range(len(dataset.image_paths))):
+        for idx in tqdm(range(len(dataset.image_paths[:1]))):
             ## read image of this pose
             image = cv2.imread(dataset.image_paths[idx])[:,:,::-1]
             image = cv2.resize(image, tuple(args.img_wh))
@@ -265,6 +265,7 @@ if __name__ == "__main__":
                         args.chunk,
                         dataset.white_back)
             opacity = results['opacity_coarse'].cpu().numpy()[:, np.newaxis] # (N_vertices, 1)
+            opacity = np.nan_to_num(opacity, 1)
 
             non_occluded = np.ones_like(non_occluded_sum) * 0.1/depth # weight by inverse depth
                                                                     # near=more confident in color
