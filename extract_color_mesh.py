@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
         # Step 2. project the vertices onto each training image to infer the color
         print('Fusing colors ...')
-        for idx in tqdm(range(len(dataset.image_paths[:1]))):
+        for idx in tqdm(range(len(dataset.image_paths))):
             ## read image of this pose
             image = cv2.imread(dataset.image_paths[idx])[:,:,::-1]
             image = cv2.resize(image, tuple(args.img_wh))
