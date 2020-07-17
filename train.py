@@ -29,7 +29,9 @@ class NeRFSystem(LightningModule):
         super(NeRFSystem, self).__init__()
         self.hparams = hparams
 
-        self.loss = loss_dict[hparams.loss_type]()
+        # losses
+        self.mse_loss = loss_dict['mse']()
+        self.normal_loss = loss_dict['normal']()
 
         self.embedding_xyz = Embedding(3, 10) # 10 is the default number
         self.embedding_dir = Embedding(3, 4) # 4 is the default number
@@ -104,7 +106,9 @@ class NeRFSystem(LightningModule):
         log = {'lr': get_learning_rate(self.optimizer)}
         rays, rgbs = self.decode_batch(batch)
         results = self(rays)
-        log['train/loss'] = loss = self.loss(results, rgbs)
+        log['train/mse_loss'] = mse_loss = self.mse_loss(results, rgbs)
+        log['train/normal_loss'] = normal_loss = self.normal_loss(results)
+        log['train/loss'] = loss = mse_loss + normal_loss
         typ = 'fine' if 'rgb_fine' in results else 'coarse'
 
         with torch.no_grad():
@@ -112,7 +116,8 @@ class NeRFSystem(LightningModule):
             log['train/psnr'] = psnr_
 
         return {'loss': loss,
-                'progress_bar': {'train_psnr': psnr_},
+                'progress_bar': {'train_psnr': psnr_,
+                                 'train_n_loss': normal_loss},
                 'log': log
                }
 
@@ -121,7 +126,10 @@ class NeRFSystem(LightningModule):
         rays = rays.squeeze() # (H*W, 3)
         rgbs = rgbs.squeeze() # (H*W, 3)
         results = self(rays)
-        log = {'val_loss': self.loss(results, rgbs)}
+        mse_loss = self.mse_loss(results, rgbs)
+        normal_loss = self.normal_loss(results)
+        loss = mse_loss + normal_loss
+        log = {'val_loss': loss}
         typ = 'fine' if 'rgb_fine' in results else 'coarse'
     
         if batch_nb == 0:
@@ -155,7 +163,7 @@ if __name__ == '__main__':
                                                                 '{epoch:d}'),
                                           monitor='val/loss',
                                           mode='min',
-                                          save_top_k=5,)
+                                          save_top_k=1)
 
     logger = TestTubeLogger(
         save_dir="logs",
