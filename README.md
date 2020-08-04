@@ -1,5 +1,7 @@
 # nerf_pl
 
+### Update: An improved version of NeRF: [Neural Sparse Voxel Fields](https://www.youtube.com/watch?v=RFqPwH7QFEI&list=PLCAViLbA8Ml6KXzGTENfELX8wcPiXWVT8) is proposed! A link to the code will be added once the authors release the code!
+
 ### :gem: [**Project page**](https://kwea123.github.io/nerf_pl/) (live demo!)
 
 Unofficial implementation of [NeRF](https://arxiv.org/pdf/2003.08934.pdf) (Neural Radiance Fields) using pytorch ([pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning)). This repo doesn't aim at reproducibility, but aim at providing a simpler and faster training procedure (also simpler code with detailed comments to help to understand the work). Moreover, I try to extend much more opportunities by integrating this algorithm into game engine like Unity.
