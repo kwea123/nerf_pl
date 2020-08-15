@@ -195,4 +195,8 @@ I also prepared colab notebooks that allow you to run the algorithm on any machi
 
 Please see [this playlist](https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02pNEyDr7DYpTQuka3mbV) for the detailed tutorials.
 
-# :jack_o_lantern: TODO
+# :jack_o_lantern: SHOWOFF
+
+We can incorporate *ray tracing* techniques into the volume rendering pipeline, and realize realistic scene editing (following is the `materials` scene with an object removed, and a mesh (lego) is inserted and rendered with ray tracing). The code **will not** be released.
+
+![add](https://user-images.githubusercontent.com/11364490/90312710-92face00-df41-11ea-9eea-10f24849b407.gif)
