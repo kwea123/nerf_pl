@@ -200,4 +200,4 @@ Please see [this playlist](https://www.youtube.com/playlist?list=PLDV2CyUo4q-K02
 We can incorporate *ray tracing* techniques into the volume rendering pipeline, and realize realistic scene editing (following is the `materials` scene with an object removed, and a mesh is inserted and rendered with ray tracing). The code **will not** be released.
 
 ![add](https://user-images.githubusercontent.com/11364490/90312710-92face00-df41-11ea-9eea-10f24849b407.gif)
-![add](https://user-images.githubusercontent.com/11364490/90360796-92744b80-e097-11ea-859d-159aa2519375.gif)
+![add2](https://user-images.githubusercontent.com/11364490/90360796-92744b80-e097-11ea-859d-159aa2519375.gif)
