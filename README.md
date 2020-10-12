@@ -1,6 +1,6 @@
 # nerf_pl
 
-### Update: An improved version of NeRF: [Neural Sparse Voxel Fields](https://www.youtube.com/watch?v=RFqPwH7QFEI&list=PLCAViLbA8Ml6KXzGTENfELX8wcPiXWVT8) is proposed! A link to the code will be added once the authors release the code!
+### Update: An improved version of NeRF: [Neural Sparse Voxel Fields](https://www.youtube.com/watch?v=RFqPwH7QFEI&list=PLCAViLbA8Ml6KXzGTENfELX8wcPiXWVT8) is proposed! Link to the [code](https://github.com/facebookresearch/NSVF). I will also find some time to try if I can optimize the code, stay tuned!
 
 ### :gem: [**Project page**](https://kwea123.github.io/nerf_pl/) (live demo!)
 
