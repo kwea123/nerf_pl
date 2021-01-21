@@ -1,7 +1,5 @@
 # nerf_pl
 
-### Update: An improved version of NeRF: [Neural Sparse Voxel Fields](https://www.youtube.com/watch?v=RFqPwH7QFEI&list=PLCAViLbA8Ml6KXzGTENfELX8wcPiXWVT8) is proposed! Link to the [code](https://github.com/facebookresearch/NSVF). I will also find some time to try if I can optimize the code, stay tuned!
-
 ### :gem: [**Project page**](https://kwea123.github.io/nerf_pl/) (live demo!)
 
 Unofficial implementation of [NeRF](https://arxiv.org/pdf/2003.08934.pdf) (Neural Radiance Fields) using pytorch ([pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning)). This repo doesn't aim at reproducibility, but aim at providing a simpler and faster training procedure (also simpler code with detailed comments to help to understand the work). Moreover, I try to extend much more opportunities by integrating this algorithm into game engine like Unity.
@@ -34,7 +32,7 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
 ## Hardware
 
 * OS: Ubuntu 18.04
-* NVIDIA GPU with **CUDA>=10.1** (tested with 1 RTX2080Ti)
+* NVIDIA GPU with **CUDA>=10.2** (tested with 1 RTX2080Ti)
 
 ## Software
 
@@ -42,7 +40,6 @@ Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pyto
 * Python>=3.6 (installation via [anaconda](https://www.anaconda.com/distribution/) is recommended, use `conda create -n nerf_pl python=3.6` to create a conda environment and activate it by `conda activate nerf_pl`)
 * Python libraries
     * Install core requirements by `pip install -r requirements.txt`
-    * Install `torchsearchsorted` by `cd torchsearchsorted` then `pip install .`
     
 # :key: Training
 
