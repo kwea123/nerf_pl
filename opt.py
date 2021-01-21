@@ -25,10 +25,6 @@ def get_opts():
     parser.add_argument('--noise_std', type=float, default=1.0,
                         help='std dev of noise added to regularize sigma')
         
-    parser.add_argument('--loss_type', type=str, default='mse',
-                        choices=['mse'],
-                        help='loss to use')
-
     parser.add_argument('--batch_size', type=int, default=1024,
                         help='batch size')
     parser.add_argument('--chunk', type=int, default=32*1024,

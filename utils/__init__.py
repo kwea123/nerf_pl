@@ -7,11 +7,22 @@ from .warmup_scheduler import GradualWarmupScheduler
 
 from .visualization import *
 
+def get_parameters(models):
+    """Get all model parameters recursively."""
+    parameters = []
+    if isinstance(models, list):
+        for model in models:
+            parameters += get_parameters(model)
+    elif isinstance(models, dict):
+        for model in models.values():
+            parameters += get_parameters(model)
+    else: # models is actually a single pytorch model
+        parameters += list(models.parameters())
+    return parameters
+
 def get_optimizer(hparams, models):
     eps = 1e-8
-    parameters = []
-    for model in models:
-        parameters += list(model.parameters())
+    parameters = get_parameters(models)
     if hparams.optimizer == 'sgd':
         optimizer = SGD(parameters, lr=hparams.lr, 
                         momentum=hparams.momentum, weight_decay=hparams.weight_decay)

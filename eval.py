@@ -62,7 +62,6 @@ def batched_inference(models, embeddings,
                       white_back):
     """Do batched inference on rays using chunk."""
     B = rays.shape[0]
-    chunk = 1024*32
     results = defaultdict(list)
     for i in range(0, B, chunk):
         rendered_ray_chunks = \
@@ -106,11 +105,10 @@ if __name__ == "__main__":
     nerf_coarse.cuda().eval()
     nerf_fine.cuda().eval()
 
-    models = [nerf_coarse, nerf_fine]
-    embeddings = [embedding_xyz, embedding_dir]
+    models = {'coarse': nerf_coarse, 'fine': nerf_fine}
+    embeddings = {'xyz': embedding_xyz, 'dir': embedding_dir}
 
-    imgs = []
-    psnrs = []
+    imgs, psnrs = [], []
     dir_name = f'results/{args.dataset_name}/{args.scene_name}'
     os.makedirs(dir_name, exist_ok=True)
 

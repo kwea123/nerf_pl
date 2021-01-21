@@ -1,9 +1,9 @@
-import torch
 from torch import nn
 
-class MSELoss(nn.Module):
-    def __init__(self):
-        super(MSELoss, self).__init__()
+class ColorLoss(nn.Module):
+    def __init__(self, coef=1):
+        super().__init__()
+        self.coef = coef
         self.loss = nn.MSELoss(reduction='mean')
 
     def forward(self, inputs, targets):
@@ -11,7 +11,7 @@ class MSELoss(nn.Module):
         if 'rgb_fine' in inputs:
             loss += self.loss(inputs['rgb_fine'], targets)
 
-        return loss
+        return self.coef * loss
                
 
-loss_dict = {'mse': MSELoss}
+loss_dict = {'color': ColorLoss}

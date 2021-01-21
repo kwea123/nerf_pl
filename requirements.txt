@@ -1,18 +1,22 @@
-torch==1.4.0
-torchvision==0.5.0
-pytorch-lightning==0.7.5
-test-tube
-kornia==0.2.0
-opencv-python==4.2.0.34
-matplotlib
+torch==1.7.1
+torchvision==0.8.2
+pytorch-lightning==1.1.4
+einops==0.3.0
+test-tube==0.7.5
+kornia==0.4.1
+opencv-python==4.5.1.48
+matplotlib==3.3.3
 jupyter
+imageio==2.9.0
+imageio-ffmpeg==0.4.2
 
 # for mesh
-PyMCubes
-pycollada
-trimesh
-pyglet
+PyMCubes==0.1.2
+pycollada==0.7.1
+trimesh==3.9.1
+pyglet==1.5.10
+networkx==2.5
 
 # for point cloud
-plyfile
-open3d
+plyfile==0.7.2
+open3d==0.12.0
