@@ -77,7 +77,7 @@ def center_poses(poses):
     poses_centered = np.linalg.inv(pose_avg_homo) @ poses_homo # (N_images, 4, 4)
     poses_centered = poses_centered[:, :3] # (N_images, 3, 4)
 
-    return poses_centered, np.linalg.inv(pose_avg_homo)
+    return poses_centered, pose_avg
 
 
 def create_spiral_poses(radii, focus_depth, n_poses=120):
@@ -187,8 +187,8 @@ class LLFFDataset(Dataset):
 
         # Step 1: rescale focal length according to training resolution
         H, W, self.focal = poses[0, :, -1] # original intrinsics, same for all images
-        assert H*self.img_wh[0] == W*self.img_wh[1], \
-            f'You must set @img_wh to have the same aspect ratio as ({W}, {H}) !'
+        # assert H*self.img_wh[0] == W*self.img_wh[1], \
+        #     f'You must set @img_wh to have the same aspect ratio as ({W}, {H}) !'
         
         self.focal *= self.img_wh[0]/W
 
