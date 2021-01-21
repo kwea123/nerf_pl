@@ -9,6 +9,8 @@ Unofficial implementation of [NeRF](https://arxiv.org/pdf/2003.08934.pdf) (Neura
 
 Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/nerf-pytorch)
 
+### Recommend to read: A detailed NeRF extension list: [awesome-NeRF](https://github.com/yenchenlin/awesome-NeRF)
+
 ## :milky_way: Features
 
 * Multi-gpu training: Training on 8 GPUs finishes within 1 hour for the synthetic dataset!
