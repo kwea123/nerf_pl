@@ -1,6 +1,7 @@
 # nerf_pl
 
 ### Update: The lastest code (using the latest libraries) will be updated to dev branch. The master branch remains to support the colab files. If you don't use colab, it is recommended to switch to dev branch.
+### Only issues of the dev branch will be considered currently.
 
 ### :gem: [**Project page**](https://kwea123.github.io/nerf_pl/) (live demo!)
 
