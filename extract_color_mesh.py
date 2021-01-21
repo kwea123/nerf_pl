@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     embedding_xyz = Embedding(3, 10)
     embedding_dir = Embedding(3, 4)
-    embeddings = [embedding_xyz, embedding_dir]
+    embeddings = {'xyz': embedding_xyz, 'dir': embedding_dir}
     nerf_fine = NeRF()
     load_ckpt(nerf_fine, args.ckpt_path, model_name='nerf_fine')
     nerf_fine.cuda().eval()
@@ -195,7 +195,7 @@ if __name__ == "__main__":
         load_ckpt(nerf_coarse, args.ckpt_path, model_name='nerf_coarse')
         nerf_coarse.cuda().eval()
 
-        results = f([nerf_coarse, nerf_fine], embeddings,
+        results = f({'coarse': nerf_coarse, 'fine': nerf_fine}, embeddings,
                     torch.cat([rays_o, rays_d, near, far], 1).cuda(),
                     args.N_samples,
                     args.N_importance,
@@ -258,7 +258,7 @@ if __name__ == "__main__":
             ## the far plane is the depth of the vertices, since what we want is the accumulated
             ## opacity along the path from camera origin to the vertices
             far = torch.FloatTensor(depth) * torch.ones_like(rays_o[:, :1])
-            results = f([nerf_fine], embeddings,
+            results = f({'coarse': nerf_fine}, embeddings,
                         torch.cat([rays_o, rays_d, near, far], 1).cuda(),
                         args.N_samples,
                         0,
