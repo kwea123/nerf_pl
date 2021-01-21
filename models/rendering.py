@@ -1,16 +1,7 @@
 import torch
-# import packages for ray tracing object insertion
-import numpy as np
-from datasets import ray_utils
 from einops import rearrange, reduce, repeat
 
 __all__ = ['render_rays']
-
-"""
-Function dependencies: (-> means function calls)
-@render_rays -> @inference
-@render_rays -> @sample_pdf if there is fine model
-"""
 
 
 def sample_pdf(bins, weights, N_importance, det=False, eps=1e-5):
@@ -210,12 +201,8 @@ def render_rays(models,
                              N_importance, det=(perturb==0))
                   # detach so that grad doesn't propogate to weights_coarse from here
 
-        z_vals_list = [z_vals, z_vals_]
-
-        if 'hit' in kwargs and test_time:
-            z_vals_list += [kwargs['hit']['t']]
-
-        z_vals = torch.sort(torch.cat(z_vals_list, -1), -1)[0]
+        z_vals = torch.sort(torch.cat([z_vals, z_vals_], -1), -1)[0]
+                 # combine coarse and fine samples
 
         xyz_fine = rays_o + rays_d * rearrange(z_vals, 'n1 n2 -> n1 n2 1')
 
