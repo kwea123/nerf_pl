@@ -147,8 +147,8 @@ def render_rays(models,
         deltas = torch.cat([deltas, delta_inf], -1)  # (N_rays, N_samples_)
 
         # # compute alpha by the formula (3)
-        # noise = torch.randn_like(sigmas) * noise_std
-        # alphas = 1-torch.exp(-deltas*torch.relu(sigmas+noise)) # (N_rays, N_samples_)
+        # noise = torch.randn_like(static_sigmas) * noise_std
+        # alphas = 1-torch.exp(-deltas*torch.relu(static_sigmas+noise)) # (N_rays, N_samples_)
 
         # ignore noise_std for the moment ...
         # if typ == 'coarse':
