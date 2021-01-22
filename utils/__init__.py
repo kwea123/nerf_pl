@@ -1,6 +1,6 @@
 # optimizer
 from torch.optim import SGD, Adam
-from .optimizers import *
+import torch_optimizer as optim
 # scheduler
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 from .warmup_scheduler import GradualWarmupScheduler
@@ -30,11 +30,11 @@ def get_optimizer(hparams, models):
         optimizer = Adam(parameters, lr=hparams.lr, eps=eps, 
                          weight_decay=hparams.weight_decay)
     elif hparams.optimizer == 'radam':
-        optimizer = RAdam(parameters, lr=hparams.lr, eps=eps, 
-                          weight_decay=hparams.weight_decay)
+        optimizer = optim.RAdam(parameters, lr=hparams.lr, eps=eps, 
+                                weight_decay=hparams.weight_decay)
     elif hparams.optimizer == 'ranger':
-        optimizer = Ranger(parameters, lr=hparams.lr, eps=eps, 
-                          weight_decay=hparams.weight_decay)
+        optimizer = optim.Ranger(parameters, lr=hparams.lr, eps=eps, 
+                                 weight_decay=hparams.weight_decay)
     else:
         raise ValueError('optimizer not recognized!')
 
