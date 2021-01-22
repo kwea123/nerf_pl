@@ -118,17 +118,17 @@ def render_rays(models,
         else: # infer rgb and sigma and others
             dir_embedded_ = repeat(dir_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
                             # (N_rays*N_samples_, embed_dir_channels)
-            if typ == 'fine':
-                t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
+            # if typ == 'fine':
+            #     t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
             for i in range(0, B, chunk):
-                if typ == 'fine':
-                    embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
-                                          dir_embedded_[i:i+chunk],
-                                          t_embedded_[i:i+chunk]], 1)
-                else:
-                    embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
+                # if typ == 'fine':
+                #     embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
+                #                           dir_embedded_[i:i+chunk],
+                #                           t_embedded_[i:i+chunk]], 1)
+                # else:
+                embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
                                           dir_embedded_[i:i+chunk]], 1)
-                out_chunks += [model(embedded, has_transient=typ=='fine')]
+                out_chunks += [model(embedded, has_transient=typ=='fiane')]
 
             out = torch.cat(out_chunks, 0)
             out = rearrange(out, '(n1 n2) c -> n1 n2 c', n1=N_rays, n2=N_samples_)
@@ -167,7 +167,7 @@ def render_rays(models,
         weights_sum = reduce(weights, 'n1 n2 -> n1', 'sum') # (N_rays), the accumulated opacity along the rays
                                                             # equals "1 - (1-a1)(1-a2)...(1-an)" mathematically
 
-        results[f'static_sigmas_{typ}'] = static_sigmas
+        # results[f'static_sigmas_{typ}'] = static_sigmas
         results[f'weights_{typ}'] = weights
         results[f'opacity_{typ}'] = weights_sum
         # if typ == 'fine':

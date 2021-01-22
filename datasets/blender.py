@@ -59,7 +59,7 @@ class BlenderDataset(Dataset):
                 self.all_rgbs += [img]
                 
                 rays_o, rays_d = get_rays(self.directions, c2w) # both (h*w, 3)
-                rays_t = t * torch.ones(len(rays_o), 1) *0
+                rays_t = t * torch.ones(len(rays_o), 1) * 0
 
                 self.all_rays += [torch.cat([rays_o, rays_d,
                                              self.near*torch.ones_like(rays_o[:, :1]),
@@ -105,7 +105,7 @@ class BlenderDataset(Dataset):
                               1) # (H*W, 8)
 
             sample = {'rays': rays,
-                      'ts': torch.zeros(len(rays), dtype=torch.long),
+                      'ts': idx * 0* torch.ones(len(rays), dtype=torch.long),
                       'rgbs': img,
                       'c2w': c2w,
                       'valid_mask': valid_mask}
