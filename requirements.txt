@@ -9,6 +9,7 @@ matplotlib==3.3.3
 jupyter
 imageio==2.9.0
 imageio-ffmpeg==0.4.2
+torch_optimizer
 
 # for mesh
 PyMCubes==0.1.2
