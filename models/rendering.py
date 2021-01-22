@@ -112,7 +112,7 @@ def render_rays(models,
                 out_chunks += [model(xyz_embedded, sigma_only=True)]
 
             out = torch.cat(out_chunks, 0)
-            sigmas = rearrange(out, '(n1 n2) -> n1 n2', n1=N_rays, n2=N_samples_)
+            sigmas = rearrange(out, '(n1 n2) 1 -> n1 n2', n1=N_rays, n2=N_samples_)
         else: # infer rgb and sigma and others
             dir_embedded_ = repeat(dir_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
                             # (N_rays*N_samples_, embed_dir_channels)
