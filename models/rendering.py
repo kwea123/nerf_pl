@@ -118,16 +118,16 @@ def render_rays(models,
         else: # infer rgb and sigma and others
             dir_embedded_ = repeat(dir_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
                             # (N_rays*N_samples_, embed_dir_channels)
-            # if typ == 'fine':
-            #     t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
+            if typ == 'fine':
+                t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
             for i in range(0, B, chunk):
-                # if typ == 'fine':
-                #     embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
-                #                           dir_embedded_[i:i+chunk],
-                #                           t_embedded_[i:i+chunk]], 1)
-                # else:
-                embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
-                                        dir_embedded_[i:i+chunk]], 1)
+                if typ == 'fine':
+                    embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
+                                          dir_embedded_[i:i+chunk],
+                                          t_embedded_[i:i+chunk]], 1)
+                else:
+                    embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
+                                          dir_embedded_[i:i+chunk]], 1)
                 out_chunks += [model(embedded, has_transient=typ=='fine')]
 
             out = torch.cat(out_chunks, 0)
@@ -138,7 +138,7 @@ def render_rays(models,
             # if typ == 'fine':
             #     # transient components
             #     transient_rgbs = out[..., 4:7]
-            #     transient_sigmas = out[..., 7]
+            #     transient_sigmas = out[..., 7]*0
             #     transient_betas = out[..., 8]
 
         # Convert these values using volume rendering (Section 4)
@@ -146,13 +146,10 @@ def render_rays(models,
         delta_inf = 1e10 * torch.ones_like(deltas[:, :1]) # (N_rays, 1) the last delta is infinity
         deltas = torch.cat([deltas, delta_inf], -1)  # (N_rays, N_samples_)
 
-        # # compute alpha by the formula (3)
-        # noise = torch.randn_like(static_sigmas) * noise_std
-        # alphas = 1-torch.exp(-deltas*torch.relu(static_sigmas+noise)) # (N_rays, N_samples_)
-
-        # ignore noise_std for the moment ...
+        # compute alpha by the formula (3)
         # if typ == 'coarse':
-        alphas = 1-torch.exp(-deltas*static_sigmas)
+        noise = torch.randn_like(static_sigmas) * noise_std
+        alphas = 1-torch.exp(-deltas*torch.relu(static_sigmas+noise))
         # else:
         #     static_alphas = 1-torch.exp(-deltas*static_sigmas)
         #     transient_alphas = 1-torch.exp(-deltas*transient_sigmas)
@@ -170,6 +167,7 @@ def render_rays(models,
         weights_sum = reduce(weights, 'n1 n2 -> n1', 'sum') # (N_rays), the accumulated opacity along the rays
                                                             # equals "1 - (1-a1)(1-a2)...(1-an)" mathematically
 
+        results[f'static_sigmas_{typ}'] = static_sigmas
         results[f'weights_{typ}'] = weights
         results[f'opacity_{typ}'] = weights_sum
         # if typ == 'fine':
@@ -181,23 +179,25 @@ def render_rays(models,
         # if typ == 'coarse':
         rgb_map = reduce(rearrange(weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
                                     'n1 n2 c -> n1 c', 'sum')
+        if white_back:
+            rgb_map = rgb_map + 1-weights_sum.unsqueeze(-1)
+        results[f'rgb_{typ}'] = rgb_map
         # else:
         #     static_rgb_map = reduce(rearrange(static_weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
         #                                       'n1 n2 c -> n1 c', 'sum')
+        #     if white_back:
+        #         static_rgb_map = static_rgb_map + 1-weights_sum.unsqueeze(-1)
+            
         #     transient_rgb_map = \
         #         reduce(rearrange(transient_weights, 'n1 n2 -> n1 n2 1')*transient_rgbs,
         #                          'n1 n2 c -> n1 c', 'sum')
-        #     rgb_map = static_rgb_map + transient_rgb_map
-        #     results['beta'] = model.beta_min + \
-        #                       reduce(transient_weights*transient_betas, 'n1 n2 -> n1', 'sum')
+        #     # results['beta'] = model.beta_min + \
+        #     #                   reduce(transient_weights*transient_betas, 'n1 n2 -> n1', 'sum')
         #     results['rgb_fine_static'] = static_rgb_map
         #     results['rgb_fine_transient'] = transient_rgb_map
+        #     results[f'rgb_{typ}'] = static_rgb_map + transient_rgb_map
         depth_map = reduce(weights*z_vals, 'n1 n2 -> n1', 'sum')
 
-        if white_back:
-            rgb_map = rgb_map + 1-weights_sum.unsqueeze(-1)
-
-        results[f'rgb_{typ}'] = rgb_map
         results[f'depth_{typ}'] = depth_map
 
         return
@@ -208,16 +208,23 @@ def render_rays(models,
     # Decompose the inputs
     N_rays = rays.shape[0]
     rays_o, rays_d = rays[:, 0:3], rays[:, 3:6] # both (N_rays, 3)
+    near, far = rays[:, 6:7], rays[:, 7:8] # both (N_rays, 1)
     # Embed direction
     dir_embedded = embedding_dir(kwargs.get('view_dir', rays_d)) # (N_rays, embed_dir_channels)
-    # # Embed time
-    # t_embedded = embedding_t(ts) # (N_rays, embed_t_channels)
+    # Embed time
+    t_embedded = embedding_t(ts) # (N_rays, embed_t_channels)
 
     rays_o = rearrange(rays_o, 'n1 c -> n1 1 c')
     rays_d = rearrange(rays_d, 'n1 c -> n1 1 c')
 
     # Sample depth points
-    z_vals = torch.linspace(0, 1, N_samples, device=rays.device).expand(N_rays, N_samples)
+    z_steps = torch.linspace(0, 1, N_samples, device=rays.device) # (N_samples)
+    if not use_disp: # use linear sampling in depth space
+        z_vals = near * (1-z_steps) + far * z_steps
+    else: # use linear sampling in disparity space
+        z_vals = 1/(1/near * (1-z_steps) + 1/far * z_steps)
+
+    z_vals = z_vals.expand(N_rays, N_samples)
     
     if perturb > 0: # perturb sampling depths (z_vals)
         z_vals_mid = 0.5 * (z_vals[: ,:-1] + z_vals[: ,1:]) # (N_rays, N_samples-1) interval mid points

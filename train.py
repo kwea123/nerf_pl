@@ -116,9 +116,11 @@ class NeRFSystem(LightningModule):
 
         self.log('lr', get_learning_rate(self.optimizer))
         self.log('train/loss', loss)
-        self.log('train/c_l', loss_d['coarse_color_loss'], prog_bar=True)
-        self.log('train/f_l', loss_d['fine_color_loss'], prog_bar=True)
-        # self.log('train/b_l', loss_d['beta_loss'], prog_bar=True)
+        for k, v in loss_d.items():
+            self.log(f'train/{k}', v, prog_bar=True)
+        # self.log('train/c_l', loss_d['coarse_color_loss'], prog_bar=True)
+        # self.log('train/f_l', loss_d['fine_color_loss'], prog_bar=True)
+        # # self.log('train/b_l', loss_d['beta_loss'], prog_bar=True)
         # self.log('train/s_l', loss_d['sigma_loss'], prog_bar=True)
         self.log('train/psnr', psnr_, prog_bar=True)
 
