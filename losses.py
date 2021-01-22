@@ -22,9 +22,9 @@ class NerfWLoss(nn.Module):
         self.lambda_u = lambda_u
 
     def forward(self, inputs, targets):
-        coarse_color_loss = 0.5 * ((inputs['rgb_coarse']-targets)**2).mean()
+        coarse_color_loss = ((inputs['rgb_coarse']-targets)**2).mean()
         if 'rgb_fine' in inputs:
-            fine_color_loss = 0.5 * ((inputs['rgb_fine']-targets)**2).mean()
+            fine_color_loss = ((inputs['rgb_fine']-targets)**2).mean()
             # fine_color_loss = \
             #     ((inputs['rgb_fine']-targets)**2 / (2*inputs['beta'].unsqueeze(1)**2)).mean()
             # beta_loss = torch.log(inputs['beta']).mean()

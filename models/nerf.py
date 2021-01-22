@@ -106,11 +106,11 @@ class NeRF(nn.Module):
         """
         if sigma_only:
             input_xyz = x
-        elif has_transient:
-            input_xyz, input_dir, input_t = \
-                torch.split(x, [self.in_channels_xyz,
-                                self.in_channels_dir,
-                                self.in_channels_t], dim=-1)
+        # elif has_transient:
+        #     input_xyz, input_dir, input_t = \
+        #         torch.split(x, [self.in_channels_xyz,
+        #                         self.in_channels_dir,
+        #                         self.in_channels_t], dim=-1)
         else:
             input_xyz, input_dir = \
                 torch.split(x, [self.in_channels_xyz, self.in_channels_dir], dim=-1)
@@ -132,17 +132,17 @@ class NeRF(nn.Module):
         static_rgb = self.static_rgb(dir_encoding) # (B, 3)
         static = torch.cat([static_rgb, static_sigma], 1) # (B, 4)
 
-        if not has_transient:
-            return static
+        # if not has_transient:
+        return static
 
-        transient_encoding_input = torch.cat([xyz_encoding_final, input_t], 1)
-        transient_encoding = self.transient_encoding(transient_encoding_input)
-        transient_sigma = self.transient_sigma(transient_encoding) # (B, 1)
-        transient_rgb = self.transient_rgb(transient_encoding) # (B, 3)
-        transient_beta = self.transient_beta(transient_encoding) # (B, 1)
+        # transient_encoding_input = torch.cat([xyz_encoding_final, input_t], 1)
+        # transient_encoding = self.transient_encoding(transient_encoding_input)
+        # transient_sigma = self.transient_sigma(transient_encoding) # (B, 1)
+        # transient_rgb = self.transient_rgb(transient_encoding) # (B, 3)
+        # transient_beta = self.transient_beta(transient_encoding) # (B, 1)
 
-        transient = torch.cat([transient_rgb,
-                               transient_sigma,
-                               transient_beta], 1) # (B, 5)
+        # transient = torch.cat([transient_rgb,
+        #                        transient_sigma,
+        #                        transient_beta], 1) # (B, 5)
 
-        return torch.cat([static, transient], 1) # (B, 9)
+        # return torch.cat([static, transient], 1) # (B, 9)
