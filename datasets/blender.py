@@ -44,7 +44,7 @@ class BlenderDataset(Dataset):
             self.poses = []
             self.all_rays = []
             self.all_rgbs = []
-            for frame in self.meta['frames']:
+            for t, frame in enumerate(self.meta['frames']):
                 pose = np.array(frame['transform_matrix'])[:3, :4]
                 self.poses += [pose]
                 c2w = torch.FloatTensor(pose)
@@ -59,10 +59,12 @@ class BlenderDataset(Dataset):
                 self.all_rgbs += [img]
                 
                 rays_o, rays_d = get_rays(self.directions, c2w) # both (h*w, 3)
+                rays_t = t * torch.ones(len(rays_o), 1)
 
-                self.all_rays += [torch.cat([rays_o, rays_d, 
+                self.all_rays += [torch.cat([rays_o, rays_d,
                                              self.near*torch.ones_like(rays_o[:, :1]),
-                                             self.far*torch.ones_like(rays_o[:, :1])],
+                                             self.far*torch.ones_like(rays_o[:, :1]),
+                                             rays_t],
                                              1)] # (h*w, 8)
 
             self.all_rays = torch.cat(self.all_rays, 0) # (len(self.meta['frames])*h*w, 3)
@@ -80,7 +82,8 @@ class BlenderDataset(Dataset):
 
     def __getitem__(self, idx):
         if self.split == 'train': # use data in the buffers
-            sample = {'rays': self.all_rays[idx],
+            sample = {'rays': self.all_rays[idx, :8],
+                      'ts': self.all_rays[idx, 8].long(),
                       'rgbs': self.all_rgbs[idx]}
 
         else: # create data for each image separately
@@ -102,6 +105,7 @@ class BlenderDataset(Dataset):
                               1) # (H*W, 8)
 
             sample = {'rays': rays,
+                      'ts': torch.zeros(len(rays), dtype=torch.long),
                       'rgbs': img,
                       'c2w': c2w,
                       'valid_mask': valid_mask}

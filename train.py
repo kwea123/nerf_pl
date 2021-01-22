@@ -1,4 +1,4 @@
-import os, sys
+import os
 from opt import get_opts
 import torch
 from collections import defaultdict
@@ -30,17 +30,19 @@ class NeRFSystem(LightningModule):
         super(NeRFSystem, self).__init__()
         self.hparams = hparams
 
-        self.loss = loss_dict['color'](coef=1)
+        self.loss = loss_dict['nerfw'](coef=1)
 
-        self.embedding_xyz = Embedding(3, 10)
-        self.embedding_dir = Embedding(3, 4)
+        self.embedding_t = torch.nn.Embedding(200, 16)
+        self.embedding_xyz = PosEmbedding(3, 10)
+        self.embedding_dir = PosEmbedding(3, 4)
         self.embeddings = {'xyz': self.embedding_xyz,
+                           't'  : self.embedding_t,
                            'dir': self.embedding_dir}
 
-        self.nerf_coarse = NeRF()
+        self.nerf_coarse = NeRF(typ='coarse')
         self.models = {'coarse': self.nerf_coarse}
         if hparams.N_importance > 0:
-            self.nerf_fine = NeRF()
+            self.nerf_fine = NeRF(typ='fine')
             self.models['fine'] = self.nerf_fine
 
     def get_progress_bar_dict(self):
@@ -48,7 +50,7 @@ class NeRFSystem(LightningModule):
         items.pop("v_num", None)
         return items
 
-    def forward(self, rays):
+    def forward(self, rays, ts):
         """Do batched inference on rays using chunk."""
         B = rays.shape[0]
         results = defaultdict(list)
@@ -57,6 +59,7 @@ class NeRFSystem(LightningModule):
                 render_rays(self.models,
                             self.embeddings,
                             rays[i:i+self.hparams.chunk],
+                            ts[i:i+self.hparams.chunk],
                             self.hparams.N_samples,
                             self.hparams.use_disp,
                             self.hparams.perturb,
@@ -102,9 +105,10 @@ class NeRFSystem(LightningModule):
                           pin_memory=True)
     
     def training_step(self, batch, batch_nb):
-        rays, rgbs = batch['rays'], batch['rgbs']
-        results = self(rays)
-        loss = self.loss(results, rgbs)
+        rays, rgbs, ts = batch['rays'], batch['rgbs'], batch['ts']
+        results = self(rays, ts)
+        loss_d = self.loss(results, rgbs)
+        loss = sum(l for l in loss_d.values())
 
         with torch.no_grad():
             typ = 'fine' if 'rgb_fine' in results else 'coarse'
@@ -112,16 +116,23 @@ class NeRFSystem(LightningModule):
 
         self.log('lr', get_learning_rate(self.optimizer))
         self.log('train/loss', loss)
+        self.log('train/c_l', loss_d['coarse_color_loss'], prog_bar=True)
+        self.log('train/f_l', loss_d['fine_color_loss'], prog_bar=True)
+        self.log('train/b_l', loss_d['beta_loss'], prog_bar=True)
+        self.log('train/s_l', loss_d['sigma_loss'], prog_bar=True)
         self.log('train/psnr', psnr_, prog_bar=True)
 
         return loss
 
     def validation_step(self, batch, batch_nb):
-        rays, rgbs = batch['rays'], batch['rgbs']
+        rays, rgbs, ts = batch['rays'], batch['rgbs'], batch['ts']
         rays = rays.squeeze() # (H*W, 3)
         rgbs = rgbs.squeeze() # (H*W, 3)
-        results = self(rays)
-        log = {'val_loss': self.loss(results, rgbs)}
+        ts = ts.squeeze() # (H*W)
+        results = self(rays, ts)
+        loss_d = self.loss(results, rgbs)
+        loss = sum(l for l in loss_d.values())
+        log = {'val_loss': loss}
         typ = 'fine' if 'rgb_fine' in results else 'coarse'
     
         if batch_nb == 0:
