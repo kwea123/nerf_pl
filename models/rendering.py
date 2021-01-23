@@ -114,9 +114,9 @@ def render_rays(models,
             if model.encode_transient:
                 t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
             for i in range(0, B, chunk):
-                # necessary inputs for original NeRF
+                # inputs for original NeRF
                 inputs = [embedding_xyz(xyz_[i:i+chunk]), dir_embedded_[i:i+chunk]]
-                # additional inputs for NeRF
+                # additional inputs for NeRF-W
                 if model.encode_appearance:
                     inputs += [a_embedded_[i:i+chunk]]
                 if model.encode_transient:
