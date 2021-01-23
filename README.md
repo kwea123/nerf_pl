@@ -33,6 +33,7 @@ All random seeds are fixed to reproduce the same perturbations every time.
 *  Color perturbation: Uses the same parameters in the paper.
   
 *  Occlusions: The square has size 200x200 (should be the same as the paper), the position is randomly sampled inside the middle 400x400 area; the 10 colors are random.
+
 ![occ](https://user-images.githubusercontent.com/11364490/105578658-283da080-5dc5-11eb-9438-9368ee241cde.gif)
 
 ### Training model
