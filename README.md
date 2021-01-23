@@ -99,7 +99,7 @@ It will create folder `results/{dataset_name}/{scene_name}` and run inference on
 Example of lego scene using pretrained **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
 ![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
 
-# :warning: Notes on differences with the original repo
+# :warning: Notes on differences with the paper
 
 *  Network structure ([nerf.py](models/nerf.py)):
     *  My base MLP uses 8 layers of 256 units as the original NeRF, while NeRF-W uses **512** units each.
