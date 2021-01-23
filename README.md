@@ -30,7 +30,7 @@ Download `nerf_synthetic.zip` from [here](https://drive.google.com/drive/folders
 
 All random seeds are fixed to reproduce the same perturbations every time.
 
-*  Color perturbation: Uses the same parameters in the paper.
+*  Color perturbations: Uses the same parameters in the paper.
   
 *  Occlusions: The square has size 200x200 (should be the same as the paper), the position is randomly sampled inside the middle 400x400 area; the 10 colors are random.
 
@@ -96,13 +96,13 @@ Example of lego scene using pretrained **NeRF-U** model under **occluder** condi
 # :warning: Notes on differences with the original repo
 
 *  Network structure ([nerf.py](models/nerf.py)):
-  *  My base MLP uses 8 layers of 256 units as the original NeRF, while NeRF-W uses **512** units each.
-  *  My static head uses 1 layer as the original NeRF, while NeRF-W uses **4** layers.
-  *  I use **softplus** activation for sigma (reason explained [here](https://github.com/bmild/nerf/issues/29#issuecomment-765335765)) while NeRF-W uses **relu**.
+    *  My base MLP uses 8 layers of 256 units as the original NeRF, while NeRF-W uses **512** units each.
+    *  My static head uses 1 layer as the original NeRF, while NeRF-W uses **4** layers.
+    *  I use **softplus** activation for sigma (reason explained [here](https://github.com/bmild/nerf/issues/29#issuecomment-765335765)) while NeRF-W uses **relu**.
 
 *  Training hyperparameters
-  *  I find larger `beta_min` achieves better result, so my default `beta_min` is `0.1` instead of `0.03` in the paper.
-  *  I add 3 to `beta_loss` (equation 13) to make it positive empirically.
+    *  I find larger `beta_min` achieves better result, so my default `beta_min` is `0.1` instead of `0.03` in the paper.
+    *  I add 3 to `beta_loss` (equation 13) to make it positive empirically.
 
 *  Evalutaion
-  *  The evaluation metric is computed on the **test** set, while NeRF evaluates on val and test combined.
+    *  The evaluation metric is computed on the **test** set, while NeRF evaluates on val and test combined.
