@@ -63,10 +63,10 @@ def render_rays(models,
     """
     Render rays by computing the output of @model applied on @rays
     Inputs:
-        models: list of NeRF models (coarse and fine) defined in nerf.py
-        embeddings: list of embedding models of origin and direction defined in nerf.py
+        models: dict of NeRF models (coarse and fine) defined in nerf.py
+        embeddings: dict of embedding models of origin and direction defined in nerf.py
         rays: (N_rays, 3+3), ray origins and directions
-        ts: (N_rays), ray time
+        ts: (N_rays), ray time as embedding index
         N_samples: number of coarse samples per ray
         use_disp: whether to sample in disparity space (inverse depth)
         perturb: factor to perturb the sampling position on the ray (for coarse model only)
@@ -117,27 +117,28 @@ def render_rays(models,
             static_sigmas = rearrange(out, '(n1 n2) 1 -> n1 n2', n1=N_rays, n2=N_samples_)
         else: # infer rgb and sigma and others
             dir_embedded_ = repeat(dir_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
-                            # (N_rays*N_samples_, embed_dir_channels)
-            if typ == 'fine':
-                t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
+            if typ == 'fine': # create other necessary inputs
+                if model.encode_appearance:
+                    a_embedded_ = repeat(a_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
+                if model.encode_transient:
+                    t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
             for i in range(0, B, chunk):
+                # necessary inputs for original NeRF
+                inputs = [embedding_xyz(xyz_[i:i+chunk]), dir_embedded_[i:i+chunk]]
+                # additional inputs for NeRF
                 if typ == 'fine':
-                    embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
-                                          dir_embedded_[i:i+chunk],
-                                          t_embedded_[i:i+chunk]], 1)
-                else:
-                    embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
-                                          dir_embedded_[i:i+chunk]], 1)
+                    if model.encode_appearance:
+                        inputs += [a_embedded_[i:i+chunk]]
+                    if model.encode_transient:
+                        inputs += [t_embedded_[i:i+chunk]]
                 # TODO: add has transient option in the kwargs
-                out_chunks += [model(embedded, has_transient=typ=='fine')]
+                out_chunks += [model(torch.cat([inputs], 1), output_transient=typ=='fine')]
 
             out = torch.cat(out_chunks, 0)
             out = rearrange(out, '(n1 n2) c -> n1 n2 c', n1=N_rays, n2=N_samples_)
-            # static components
             static_rgbs = out[..., :3] # (N_rays, N_samples_, 3)
             static_sigmas = out[..., 3] # (N_rays, N_samples_)
-            if typ == 'fine':
-                # transient components
+            if typ == 'fine' and model.encode_transient:
                 transient_rgbs = out[..., 4:7]
                 transient_sigmas = out[..., 7]
                 transient_betas = out[..., 8]
@@ -148,41 +149,34 @@ def render_rays(models,
         deltas = torch.cat([deltas, delta_inf], -1)  # (N_rays, N_samples_)
 
         # compute alpha by the formula (3)
-        if typ == 'coarse':
-            noise = torch.randn_like(static_sigmas) * noise_std
-            alphas = 1-torch.exp(-deltas*torch.relu(static_sigmas+noise))
-        else:
+        if typ == 'fine' and model.encode_transient:
             static_alphas = 1-torch.exp(-deltas*static_sigmas)
             transient_alphas = 1-torch.exp(-deltas*transient_sigmas)
             alphas = 1-torch.exp(-deltas*(static_sigmas+transient_sigmas))
+        else:
+            noise = torch.randn_like(static_sigmas) * noise_std
+            alphas = 1-torch.exp(-deltas*torch.relu(static_sigmas+noise))
 
         alphas_shifted = \
             torch.cat([torch.ones_like(alphas[:, :1]), 1-alphas+1e-10], -1) # [1, 1-a1, 1-a2, ...]
         transmittance = torch.cumprod(alphas_shifted[:, :-1], -1) # [1, 1-a1, (1-a1)(1-a2), ...]
 
-        if typ == 'fine':
+        if typ == 'fine' and model.encode_transient:
             static_weights = static_alphas * transmittance
             transient_weights = transient_alphas * transmittance
 
-        weights = alphas * transmittance # (N_rays, N_samples_)
-        weights_sum = reduce(weights, 'n1 n2 -> n1', 'sum') # (N_rays), the accumulated opacity along the rays
-                                                            # equals "1 - (1-a1)(1-a2)...(1-an)" mathematically
+        weights = alphas * transmittance
+        weights_sum = reduce(weights, 'n1 n2 -> n1', 'sum')
 
         results[f'weights_{typ}'] = weights
         results[f'opacity_{typ}'] = weights_sum
-        if typ == 'fine':
+        if typ == 'fine' and model.encode_transient:
             results['transient_sigmas'] = transient_sigmas
         if test_time and typ == 'coarse':
             return
 
 
-        if typ == 'coarse':
-            rgb_map = reduce(rearrange(weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
-                                        'n1 n2 c -> n1 c', 'sum')
-            if white_back:
-                rgb_map = rgb_map + 1-rearrange(weights_sum, 'n -> n 1')
-            results[f'rgb_{typ}'] = rgb_map
-        else:
+        if typ == 'fine' and model.encode_transient:
             static_rgb_map = reduce(rearrange(static_weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
                                               'n1 n2 c -> n1 c', 'sum')
             if white_back:
@@ -196,14 +190,19 @@ def render_rays(models,
             results['rgb_fine_static'] = static_rgb_map
             results['rgb_fine_transient'] = transient_rgb_map
             results[f'rgb_{typ}'] = static_rgb_map + transient_rgb_map
-        depth_map = reduce(weights*z_vals, 'n1 n2 -> n1', 'sum')
+        else:
+            rgb_map = reduce(rearrange(weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
+                                        'n1 n2 c -> n1 c', 'sum')
+            if white_back:
+                rgb_map = rgb_map + 1-rearrange(weights_sum, 'n -> n 1')
+            results[f'rgb_{typ}'] = rgb_map
 
-        results[f'depth_{typ}'] = depth_map
+        # TODO: separate depth for static and transient
+        results[f'depth_{typ}'] = reduce(weights*z_vals, 'n1 n2 -> n1', 'sum')
 
         return
 
-    embedding_xyz, embedding_dir, embedding_t = \
-        embeddings['xyz'], embeddings['dir'], embeddings['t']
+    embedding_xyz, embedding_dir = embeddings['xyz'], embeddings['dir']
 
     # Decompose the inputs
     N_rays = rays.shape[0]
@@ -211,8 +210,6 @@ def render_rays(models,
     near, far = rays[:, 6:7], rays[:, 7:8] # both (N_rays, 1)
     # Embed direction
     dir_embedded = embedding_dir(kwargs.get('view_dir', rays_d)) # (N_rays, embed_dir_channels)
-    # Embed time
-    t_embedded = embedding_t(ts) # (N_rays, embed_t_channels)
 
     rays_o = rearrange(rays_o, 'n1 c -> n1 1 c')
     rays_d = rearrange(rays_d, 'n1 c -> n1 1 c')
@@ -248,6 +245,11 @@ def render_rays(models,
         z_vals = torch.sort(torch.cat([z_vals, z_vals_], -1), -1)[0]
         xyz_fine = rays_o + rays_d * rearrange(z_vals, 'n1 n2 -> n1 n2 1')
 
+        model = models['fine']
+        if model.encode_appearance:
+            a_embedded = embeddings['a'](ts)
+        if model.encode_transient:
+            t_embedded = embeddings['t'](ts)
         inference(results, models['fine'], xyz_fine, z_vals, test_time, **kwargs)
 
     return results

@@ -18,6 +18,7 @@ def get_opts():
     parser.add_argument('--spheric_poses', default=False, action="store_true",
                         help='whether images are taken in spheric poses (for llff)')
 
+    # original NeRF parameters
     parser.add_argument('--N_emb_xyz', type=int, default=10,
                         help='number of xyz embedding frequencies')
     parser.add_argument('--N_emb_dir', type=int, default=4,
@@ -33,6 +34,16 @@ def get_opts():
     parser.add_argument('--noise_std', type=float, default=1.0,
                         help='std dev of noise added to regularize sigma')
 
+    # NeRF-W parameters
+    parser.add_argument('--N_vocab', type=int, default=200,
+                        help='''number of vocabulary (number of images) 
+                                in the dataset for nn.Embedding''')
+    parser.add_argument('--encode_a', default=False, action="store_true",
+                        help='whether to encode appearance (NeRF-A)')
+    parser.add_argument('--N_a', type=int, default=48,
+                        help='number of embeddings for appearance')
+    parser.add_argument('--encode_t', default=False, action="store_true",
+                        help='whether to encode transient object (NeRF-U)')
     parser.add_argument('--N_tau', type=int, default=16,
                         help='number of embeddings for transient objects')
     parser.add_argument('--beta_min', type=float, default=0.03,

@@ -32,18 +32,27 @@ class NeRFSystem(LightningModule):
 
         self.loss = loss_dict['nerfw'](coef=1)
 
-        # the training set has 200 images, so the vocab size is 200
-        self.embedding_t = torch.nn.Embedding(200, hparams.N_tau)
         self.embedding_xyz = PosEmbedding(hparams.N_emb_xyz-1, hparams.N_emb_xyz)
         self.embedding_dir = PosEmbedding(hparams.N_emb_dir-1, hparams.N_emb_dir)
         self.embeddings = {'xyz': self.embedding_xyz,
-                           't'  : self.embedding_t,
                            'dir': self.embedding_dir}
+
+        if hparams.encode_a:
+            self.embedding_a = torch.nn.Embedding(hparams.N_vocab, hparams.N_a)
+            self.embeddings['a'] = self.embedding_a
+        if hparams.encode_t:
+            self.embedding_t = torch.nn.Embedding(hparams.N_vocab, hparams.N_tau)
+            self.embeddings['t'] = self.embedding_t
 
         self.nerf_coarse = NeRF('coarse')
         self.models = {'coarse': self.nerf_coarse}
         if hparams.N_importance > 0:
-            self.nerf_fine = NeRF('fine', beta_min=hparams.beta_min)
+            self.nerf_fine = NeRF('fine',
+                                  encode_appearance=hparams.encode_a,
+                                  in_channels_a=hparams.N_a,
+                                  encode_transient=hparams.encode_t,
+                                  in_channels_t=hparams.N_tau,
+                                  beta_min=hparams.beta_min)
             self.models['fine'] = self.nerf_fine
 
     def get_progress_bar_dict(self):
