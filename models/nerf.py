@@ -63,9 +63,9 @@ class NeRF(nn.Module):
         self.in_channels_t = in_channels_t
         self.skips = skips
 
-        self.encode_appearance = encode_appearance
+        self.encode_appearance = False if typ=='coarse' else encode_appearance
         self.in_channels_a = in_channels_a if encode_appearance else 0
-        self.encode_transient = encode_transient
+        self.encode_transient = False if typ=='coarse' else encode_transient
         self.in_channels_t = in_channels_t
         self.beta_min = beta_min
 

@@ -35,7 +35,7 @@ def get_opts():
                         help='std dev of noise added to regularize sigma')
 
     # NeRF-W parameters
-    parser.add_argument('--N_vocab', type=int, default=200,
+    parser.add_argument('--N_vocab', type=int, default=100,
                         help='''number of vocabulary (number of images) 
                                 in the dataset for nn.Embedding''')
     parser.add_argument('--encode_a', default=False, action="store_true",

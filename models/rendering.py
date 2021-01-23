@@ -61,7 +61,7 @@ def render_rays(models,
                 **kwargs
                 ):
     """
-    Render rays by computing the output of @model applied on @rays
+    Render rays by computing the output of @model applied on @rays and @ts
     Inputs:
         models: dict of NeRF models (coarse and fine) defined in nerf.py
         embeddings: dict of embedding models of origin and direction defined in nerf.py
@@ -87,23 +87,15 @@ def render_rays(models,
             results: a dict storing all results
             model: NeRF model (coarse or fine)
             xyz: (N_rays, N_samples_, 3) sampled positions
-                  N_samples_ is the number of sampled points in each ray;
+                  N_samples_ is the number of sampled points on each ray;
                              = N_samples for coarse model
                              = N_samples+N_importance for fine model
-                             +1 if add new objects in kwargs
             z_vals: (N_rays, N_samples_) depths of the sampled positions
             test_time: test time or not
-        Outputs:
-            if weights_only:
-                weights: (N_rays, N_samples_): weights of each sample
-            else:
-                rgb_final: (N_rays, 3) the final rgb image
-                depth_final: (N_rays) depth map
-                weights: (N_rays, N_samples_): weights of each sample
         """
         typ = model.typ
         N_samples_ = xyz.shape[1]
-        xyz_ = rearrange(xyz, 'n1 n2 c -> (n1 n2) c', c=3) # (N_rays*N_samples_, 3)
+        xyz_ = rearrange(xyz, 'n1 n2 c -> (n1 n2) c', c=3)
 
         # Perform model inference to get rgb and raw sigma
         B = xyz_.shape[0]
@@ -112,25 +104,23 @@ def render_rays(models,
             for i in range(0, B, chunk):
                 xyz_embedded = embedding_xyz(xyz_[i:i+chunk])
                 out_chunks += [model(xyz_embedded, sigma_only=True)]
-
             out = torch.cat(out_chunks, 0)
             static_sigmas = rearrange(out, '(n1 n2) 1 -> n1 n2', n1=N_rays, n2=N_samples_)
         else: # infer rgb and sigma and others
             dir_embedded_ = repeat(dir_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
-            if typ == 'fine': # create other necessary inputs
-                if model.encode_appearance:
-                    a_embedded_ = repeat(a_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
-                if model.encode_transient:
-                    t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
+            # create other necessary inputs
+            if model.encode_appearance:
+                a_embedded_ = repeat(a_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
+            if model.encode_transient:
+                t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
             for i in range(0, B, chunk):
                 # necessary inputs for original NeRF
                 inputs = [embedding_xyz(xyz_[i:i+chunk]), dir_embedded_[i:i+chunk]]
                 # additional inputs for NeRF
-                if typ == 'fine':
-                    if model.encode_appearance:
-                        inputs += [a_embedded_[i:i+chunk]]
-                    if model.encode_transient:
-                        inputs += [t_embedded_[i:i+chunk]]
+                if model.encode_appearance:
+                    inputs += [a_embedded_[i:i+chunk]]
+                if model.encode_transient:
+                    inputs += [t_embedded_[i:i+chunk]]
                 # TODO: add output_transient option in the kwargs
                 out_chunks += [model(torch.cat(inputs, 1),
                                      output_transient=(typ=='fine' and model.encode_transient))]
@@ -144,13 +134,12 @@ def render_rays(models,
                 transient_sigmas = out[..., 7]
                 transient_betas = out[..., 8]
 
-        # Convert these values using volume rendering (Section 4)
+        # Convert these values using volume rendering
         deltas = z_vals[:, 1:] - z_vals[:, :-1] # (N_rays, N_samples_-1)
         delta_inf = 1e2 * torch.ones_like(deltas[:, :1]) # (N_rays, 1) the last delta is infinity
         deltas = torch.cat([deltas, delta_inf], -1)  # (N_rays, N_samples_)
 
-        # compute alpha by the formula (3)
-        if typ == 'fine' and model.encode_transient:
+        if model.encode_transient:
             static_alphas = 1-torch.exp(-deltas*static_sigmas)
             transient_alphas = 1-torch.exp(-deltas*transient_sigmas)
             alphas = 1-torch.exp(-deltas*(static_sigmas+transient_sigmas))
@@ -162,7 +151,7 @@ def render_rays(models,
             torch.cat([torch.ones_like(alphas[:, :1]), 1-alphas], -1) # [1, 1-a1, 1-a2, ...]
         transmittance = torch.cumprod(alphas_shifted[:, :-1], -1) # [1, 1-a1, (1-a1)(1-a2), ...]
 
-        if typ == 'fine' and model.encode_transient:
+        if model.encode_transient:
             static_weights = static_alphas * transmittance
             transient_weights = transient_alphas * transmittance
 
@@ -171,13 +160,13 @@ def render_rays(models,
 
         results[f'weights_{typ}'] = weights
         results[f'opacity_{typ}'] = weights_sum
-        if typ == 'fine' and model.encode_transient:
+        if model.encode_transient:
             results['transient_sigmas'] = transient_sigmas
         if test_time and typ == 'coarse':
             return
 
 
-        if typ == 'fine' and model.encode_transient:
+        if model.encode_transient:
             static_rgb_map = reduce(rearrange(static_weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
                                     'n1 n2 c -> n1 c', 'sum')
             if white_back:
@@ -274,6 +263,6 @@ def render_rays(models,
             a_embedded = embeddings['a'](ts)
         if model.encode_transient:
             t_embedded = embeddings['t'](ts)
-        inference(results, models['fine'], xyz_fine, z_vals, test_time, **kwargs)
+        inference(results, model, xyz_fine, z_vals, test_time, **kwargs)
 
     return results
