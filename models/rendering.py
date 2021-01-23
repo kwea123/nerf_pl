@@ -114,88 +114,88 @@ def render_rays(models,
                 out_chunks += [model(xyz_embedded, sigma_only=True)]
 
             out = torch.cat(out_chunks, 0)
-            static_sigmas = rearrange(out, '(n1 n2) -> n1 n2', n1=N_rays, n2=N_samples_)
+            static_sigmas = rearrange(out, '(n1 n2) 1 -> n1 n2', n1=N_rays, n2=N_samples_)
         else: # infer rgb and sigma and others
             dir_embedded_ = repeat(dir_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
                             # (N_rays*N_samples_, embed_dir_channels)
-            # if typ == 'fine':
-            #     t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
+            if typ == 'fine':
+                t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
             for i in range(0, B, chunk):
-                # if typ == 'fine':
-                #     embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
-                #                           dir_embedded_[i:i+chunk],
-                #                           t_embedded_[i:i+chunk]], 1)
-                # else:
-                embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
+                if typ == 'fine':
+                    embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
+                                          dir_embedded_[i:i+chunk],
+                                          t_embedded_[i:i+chunk]], 1)
+                else:
+                    embedded = torch.cat([embedding_xyz(xyz_[i:i+chunk]),
                                           dir_embedded_[i:i+chunk]], 1)
-                out_chunks += [model(embedded, has_transient=typ=='fiane')]
+                # TODO: add has transient option in the kwargs
+                out_chunks += [model(embedded, has_transient=typ=='fine')]
 
             out = torch.cat(out_chunks, 0)
             out = rearrange(out, '(n1 n2) c -> n1 n2 c', n1=N_rays, n2=N_samples_)
             # static components
             static_rgbs = out[..., :3] # (N_rays, N_samples_, 3)
             static_sigmas = out[..., 3] # (N_rays, N_samples_)
-            # if typ == 'fine':
-            #     # transient components
-            #     transient_rgbs = out[..., 4:7]
-            #     transient_sigmas = out[..., 7]*0
-            #     transient_betas = out[..., 8]
+            if typ == 'fine':
+                # transient components
+                transient_rgbs = out[..., 4:7]
+                transient_sigmas = out[..., 7]
+                transient_betas = out[..., 8]
 
         # Convert these values using volume rendering (Section 4)
         deltas = z_vals[:, 1:] - z_vals[:, :-1] # (N_rays, N_samples_-1)
-        delta_inf = 1e10 * torch.ones_like(deltas[:, :1]) # (N_rays, 1) the last delta is infinity
+        delta_inf = 1e2 * torch.ones_like(deltas[:, :1]) # (N_rays, 1) the last delta is infinity
         deltas = torch.cat([deltas, delta_inf], -1)  # (N_rays, N_samples_)
 
         # compute alpha by the formula (3)
-        # if typ == 'coarse':
-        noise = torch.randn_like(static_sigmas) * noise_std
-        alphas = 1-torch.exp(-deltas*torch.relu(static_sigmas+noise))
-        # else:
-        #     static_alphas = 1-torch.exp(-deltas*static_sigmas)
-        #     transient_alphas = 1-torch.exp(-deltas*transient_sigmas)
-        #     alphas = 1-torch.exp(-deltas*(static_sigmas+transient_sigmas))
+        if typ == 'coarse':
+            noise = torch.randn_like(static_sigmas) * noise_std
+            alphas = 1-torch.exp(-deltas*torch.relu(static_sigmas+noise))
+        else:
+            static_alphas = 1-torch.exp(-deltas*static_sigmas)
+            transient_alphas = 1-torch.exp(-deltas*transient_sigmas)
+            alphas = 1-torch.exp(-deltas*(static_sigmas+transient_sigmas))
 
         alphas_shifted = \
             torch.cat([torch.ones_like(alphas[:, :1]), 1-alphas+1e-10], -1) # [1, 1-a1, 1-a2, ...]
         transmittance = torch.cumprod(alphas_shifted[:, :-1], -1) # [1, 1-a1, (1-a1)(1-a2), ...]
 
-        # if typ == 'fine':
-        #     static_weights = static_alphas * transmittance # (N_rays, N_samples_)
-        #     transient_weights = transient_alphas * transmittance
+        if typ == 'fine':
+            static_weights = static_alphas * transmittance
+            transient_weights = transient_alphas * transmittance
 
         weights = alphas * transmittance # (N_rays, N_samples_)
         weights_sum = reduce(weights, 'n1 n2 -> n1', 'sum') # (N_rays), the accumulated opacity along the rays
                                                             # equals "1 - (1-a1)(1-a2)...(1-an)" mathematically
 
-        # results[f'static_sigmas_{typ}'] = static_sigmas
         results[f'weights_{typ}'] = weights
         results[f'opacity_{typ}'] = weights_sum
-        # if typ == 'fine':
-        #     results['transient_sigmas'] = transient_sigmas
+        if typ == 'fine':
+            results['transient_sigmas'] = transient_sigmas
         if test_time and typ == 'coarse':
             return
 
 
-        # if typ == 'coarse':
-        rgb_map = reduce(rearrange(weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
-                                    'n1 n2 c -> n1 c', 'sum')
-        if white_back:
-            rgb_map = rgb_map + 1-weights_sum.unsqueeze(-1)
-        results[f'rgb_{typ}'] = rgb_map
-        # else:
-        #     static_rgb_map = reduce(rearrange(static_weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
-        #                                       'n1 n2 c -> n1 c', 'sum')
-        #     if white_back:
-        #         static_rgb_map = static_rgb_map + 1-weights_sum.unsqueeze(-1)
+        if typ == 'coarse':
+            rgb_map = reduce(rearrange(weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
+                                        'n1 n2 c -> n1 c', 'sum')
+            if white_back:
+                rgb_map = rgb_map + 1-rearrange(weights_sum, 'n -> n 1')
+            results[f'rgb_{typ}'] = rgb_map
+        else:
+            static_rgb_map = reduce(rearrange(static_weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
+                                              'n1 n2 c -> n1 c', 'sum')
+            if white_back:
+                static_rgb_map = static_rgb_map + 1-rearrange(weights_sum, 'n -> n 1')
             
-        #     transient_rgb_map = \
-        #         reduce(rearrange(transient_weights, 'n1 n2 -> n1 n2 1')*transient_rgbs,
-        #                          'n1 n2 c -> n1 c', 'sum')
-        #     # results['beta'] = model.beta_min + \
-        #     #                   reduce(transient_weights*transient_betas, 'n1 n2 -> n1', 'sum')
-        #     results['rgb_fine_static'] = static_rgb_map
-        #     results['rgb_fine_transient'] = transient_rgb_map
-        #     results[f'rgb_{typ}'] = static_rgb_map + transient_rgb_map
+            transient_rgb_map = \
+                reduce(rearrange(transient_weights, 'n1 n2 -> n1 n2 1')*transient_rgbs,
+                                 'n1 n2 c -> n1 c', 'sum')
+            results['beta'] = model.beta_min + \
+                              reduce(transient_weights*transient_betas, 'n1 n2 -> n1', 'sum')
+            results['rgb_fine_static'] = static_rgb_map
+            results['rgb_fine_transient'] = transient_rgb_map
+            results[f'rgb_{typ}'] = static_rgb_map + transient_rgb_map
         depth_map = reduce(weights*z_vals, 'n1 n2 -> n1', 'sum')
 
         results[f'depth_{typ}'] = depth_map

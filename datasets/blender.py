@@ -3,25 +3,31 @@ from torch.utils.data import Dataset
 import json
 import numpy as np
 import os
-from PIL import Image
+from PIL import Image, ImageDraw
 from torchvision import transforms as T
 
 from .ray_utils import *
 
 class BlenderDataset(Dataset):
-    def __init__(self, root_dir, split='train', img_wh=(800, 800)):
+    def __init__(self, root_dir, split='train', img_wh=(800, 800),
+                 perturbation=[]):
         self.root_dir = root_dir
         self.split = split
         assert img_wh[0] == img_wh[1], 'image width must equal image height!'
         self.img_wh = img_wh
         self.define_transforms()
 
+        assert set(perturbation).issubset({"color", "occ"}), \
+            'Only "color" and "occ" perturbations are supported!'
+        self.perturbation = perturbation
+        if self.split == 'train':
+            print(f'add {self.perturbation} perturbation!')
         self.read_meta()
         self.white_back = True
 
     def read_meta(self):
         with open(os.path.join(self.root_dir,
-                               f"transforms_{self.split}.json"), 'r') as f:
+                               f"transforms_{self.split.split('_')[-1]}.json"), 'r') as f:
             self.meta = json.load(f)
 
         w, h = self.img_wh
@@ -52,6 +58,21 @@ class BlenderDataset(Dataset):
                 image_path = os.path.join(self.root_dir, f"{frame['file_path']}.png")
                 self.image_paths += [image_path]
                 img = Image.open(image_path)
+                if t != 0: # perturb everything except the first image.
+                           # cf. Section D in the supplementary material
+                    if 'color' in self.perturbation:
+                        pass
+                    if 'occ' in self.perturbation:
+                        draw = ImageDraw.Draw(img)
+                        np.random.seed(t)
+                        left = np.random.randint(200, 600)
+                        top = np.random.randint(200, 600)
+                        for i in range(10):
+                            np.random.seed(10*t+i)
+                            random_color = tuple(np.random.choice(range(256), 3))
+                            draw.rectangle(((left+20*i, top), (left+20*(i+1), top+200)),
+                                            fill=random_color)
+
                 img = img.resize(self.img_wh, Image.LANCZOS)
                 img = self.transform(img) # (4, h, w)
                 img = img.view(4, -1).permute(1, 0) # (h*w, 4) RGBA
@@ -59,7 +80,7 @@ class BlenderDataset(Dataset):
                 self.all_rgbs += [img]
                 
                 rays_o, rays_d = get_rays(self.directions, c2w) # both (h*w, 3)
-                rays_t = t * torch.ones(len(rays_o), 1) * 0
+                rays_t = t * torch.ones(len(rays_o), 1)
 
                 self.all_rays += [torch.cat([rays_o, rays_d,
                                              self.near*torch.ones_like(rays_o[:, :1]),
@@ -89,8 +110,23 @@ class BlenderDataset(Dataset):
         else: # create data for each image separately
             frame = self.meta['frames'][idx]
             c2w = torch.FloatTensor(frame['transform_matrix'])[:3, :4]
+            t = 0 # transient embedding index, 0 for val and test (no perturbation)
 
             img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
+            if self.split == 'test_train' and idx != 0:
+                t = idx
+                if 'color' in self.perturbation:
+                    pass
+                if 'occ' in self.perturbation:
+                    draw = ImageDraw.Draw(img)
+                    np.random.seed(idx)
+                    left = np.random.randint(200, 600)
+                    top = np.random.randint(200, 600)
+                    for i in range(10):
+                        np.random.seed(10*idx+i)
+                        random_color = tuple(np.random.choice(range(256), 3))
+                        draw.rectangle(((left+20*i, top), (left+20*(i+1), top+200)),
+                                        fill=random_color)
             img = img.resize(self.img_wh, Image.LANCZOS)
             img = self.transform(img) # (4, H, W)
             valid_mask = (img[-1]>0).flatten() # (H*W) valid color area
@@ -105,7 +141,7 @@ class BlenderDataset(Dataset):
                               1) # (H*W, 8)
 
             sample = {'rays': rays,
-                      'ts': idx * 0* torch.ones(len(rays), dtype=torch.long),
+                      'ts': t * torch.ones(len(rays), dtype=torch.long),
                       'rgbs': img,
                       'c2w': c2w,
                       'valid_mask': valid_mask}

@@ -34,12 +34,22 @@ def get_opts():
     parser.add_argument('--spheric_poses', default=False, action="store_true",
                         help='whether images are taken in spheric poses (for llff)')
 
+    parser.add_argument('--N_emb_xyz', type=int, default=10,
+                        help='number of xyz embedding frequencies')
+    parser.add_argument('--N_emb_dir', type=int, default=4,
+                        help='number of direction embedding frequencies')
     parser.add_argument('--N_samples', type=int, default=64,
                         help='number of coarse samples')
     parser.add_argument('--N_importance', type=int, default=128,
                         help='number of additional fine samples')
     parser.add_argument('--use_disp', default=False, action="store_true",
                         help='use disparity depth sampling')
+
+    parser.add_argument('--N_tau', type=int, default=16,
+                        help='number of embeddings for transient objects')
+    parser.add_argument('--beta_min', type=float, default=0.03,
+                        help='minimum color variance for each ray')
+
     parser.add_argument('--chunk', type=int, default=32*1024*4,
                         help='chunk size to split the input to avoid OOM')
 
@@ -57,7 +67,7 @@ def get_opts():
 
 @torch.no_grad()
 def batched_inference(models, embeddings,
-                      rays, N_samples, N_importance, use_disp,
+                      rays, ts, N_samples, N_importance, use_disp,
                       chunk,
                       white_back):
     """Do batched inference on rays using chunk."""
@@ -68,6 +78,7 @@ def batched_inference(models, embeddings,
             render_rays(models,
                         embeddings,
                         rays[i:i+chunk],
+                        ts[i:i+chunk],
                         N_samples,
                         use_disp,
                         0,
@@ -96,17 +107,20 @@ if __name__ == "__main__":
         kwargs['spheric_poses'] = args.spheric_poses
     dataset = dataset_dict[args.dataset_name](**kwargs)
 
-    embedding_xyz = Embedding(3, 10)
-    embedding_dir = Embedding(3, 4)
-    nerf_coarse = NeRF()
-    nerf_fine = NeRF()
+    embedding_t = torch.nn.Embedding(200, args.N_tau)
+    embedding_xyz = PosEmbedding(args.N_emb_xyz-1, args.N_emb_xyz)
+    embedding_dir = PosEmbedding(args.N_emb_dir-1, args.N_emb_dir)
+    nerf_coarse = NeRF('coarse')
+    nerf_fine = NeRF('fine', beta_min=args.beta_min)
+    load_ckpt(embedding_t, args.ckpt_path, model_name='embedding_t')
     load_ckpt(nerf_coarse, args.ckpt_path, model_name='nerf_coarse')
     load_ckpt(nerf_fine, args.ckpt_path, model_name='nerf_fine')
-    nerf_coarse.cuda().eval()
-    nerf_fine.cuda().eval()
+    embedding_t.cuda()
+    nerf_coarse.cuda()
+    nerf_fine.cuda()
 
     models = {'coarse': nerf_coarse, 'fine': nerf_fine}
-    embeddings = {'xyz': embedding_xyz, 'dir': embedding_dir}
+    embeddings = {'xyz': embedding_xyz, 'dir': embedding_dir, 't': embedding_t}
 
     imgs, psnrs = [], []
     dir_name = f'results/{args.dataset_name}/{args.scene_name}'
@@ -115,7 +129,8 @@ if __name__ == "__main__":
     for i in tqdm(range(len(dataset))):
         sample = dataset[i]
         rays = sample['rays'].cuda()
-        results = batched_inference(models, embeddings, rays,
+        ts = sample['ts'].cuda()
+        results = batched_inference(models, embeddings, rays, ts,
                                     args.N_samples, args.N_importance, args.use_disp,
                                     args.chunk,
                                     dataset.white_back)

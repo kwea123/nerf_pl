@@ -9,11 +9,19 @@ def get_opts():
     parser.add_argument('--dataset_name', type=str, default='blender',
                         choices=['blender', 'llff'],
                         help='which dataset to train/val')
+    parser.add_argument('--data_perturb', nargs="+", type=str, default=[],
+                        help='''what perturbation to add to data.
+                                Available choices: [], ["color"], ["occ"] or ["color", "occ"]
+                             ''')
     parser.add_argument('--img_wh', nargs="+", type=int, default=[800, 800],
                         help='resolution (img_w, img_h) of the image')
     parser.add_argument('--spheric_poses', default=False, action="store_true",
                         help='whether images are taken in spheric poses (for llff)')
 
+    parser.add_argument('--N_emb_xyz', type=int, default=10,
+                        help='number of xyz embedding frequencies')
+    parser.add_argument('--N_emb_dir', type=int, default=4,
+                        help='number of direction embedding frequencies')
     parser.add_argument('--N_samples', type=int, default=64,
                         help='number of coarse samples')
     parser.add_argument('--N_importance', type=int, default=128,
@@ -24,7 +32,12 @@ def get_opts():
                         help='factor to perturb depth sampling points')
     parser.add_argument('--noise_std', type=float, default=1.0,
                         help='std dev of noise added to regularize sigma')
-        
+
+    parser.add_argument('--N_tau', type=int, default=16,
+                        help='number of embeddings for transient objects')
+    parser.add_argument('--beta_min', type=float, default=0.03,
+                        help='minimum color variance for each ray')
+
     parser.add_argument('--batch_size', type=int, default=1024,
                         help='batch size')
     parser.add_argument('--chunk', type=int, default=32*1024,

@@ -32,17 +32,18 @@ class NeRFSystem(LightningModule):
 
         self.loss = loss_dict['nerfw'](coef=1)
 
-        self.embedding_t = torch.nn.Embedding(200, 16)
-        self.embedding_xyz = PosEmbedding(3, 10)
-        self.embedding_dir = PosEmbedding(3, 4)
+        # the training set has 200 images, so the vocab size is 200
+        self.embedding_t = torch.nn.Embedding(200, hparams.N_tau)
+        self.embedding_xyz = PosEmbedding(hparams.N_emb_xyz-1, hparams.N_emb_xyz)
+        self.embedding_dir = PosEmbedding(hparams.N_emb_dir-1, hparams.N_emb_dir)
         self.embeddings = {'xyz': self.embedding_xyz,
                            't'  : self.embedding_t,
                            'dir': self.embedding_dir}
 
-        self.nerf_coarse = NeRF(typ='coarse')
+        self.nerf_coarse = NeRF('coarse')
         self.models = {'coarse': self.nerf_coarse}
         if hparams.N_importance > 0:
-            self.nerf_fine = NeRF(typ='fine')
+            self.nerf_fine = NeRF('fine', beta_min=hparams.beta_min)
             self.models['fine'] = self.nerf_fine
 
     def get_progress_bar_dict(self):
@@ -78,7 +79,8 @@ class NeRFSystem(LightningModule):
     def setup(self, stage):
         dataset = dataset_dict[self.hparams.dataset_name]
         kwargs = {'root_dir': self.hparams.root_dir,
-                  'img_wh': tuple(self.hparams.img_wh)}
+                  'img_wh': tuple(self.hparams.img_wh),
+                  'perturbation': self.hparams.data_perturb}
         if self.hparams.dataset_name == 'llff':
             kwargs['spheric_poses'] = self.hparams.spheric_poses
             kwargs['val_num'] = self.hparams.num_gpus
@@ -118,10 +120,6 @@ class NeRFSystem(LightningModule):
         self.log('train/loss', loss)
         for k, v in loss_d.items():
             self.log(f'train/{k}', v, prog_bar=True)
-        # self.log('train/c_l', loss_d['coarse_color_loss'], prog_bar=True)
-        # self.log('train/f_l', loss_d['fine_color_loss'], prog_bar=True)
-        # # self.log('train/b_l', loss_d['beta_loss'], prog_bar=True)
-        # self.log('train/s_l', loss_d['sigma_loss'], prog_bar=True)
         self.log('train/psnr', psnr_, prog_bar=True)
 
         return loss
@@ -166,7 +164,7 @@ def main(hparams):
                                                '{epoch:d}'),
                         monitor='val/loss',
                         mode='min',
-                        save_top_k=5)
+                        save_top_k=-1)
 
     logger = TestTubeLogger(save_dir="logs",
                             name=hparams.exp_name,
