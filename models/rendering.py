@@ -131,8 +131,9 @@ def render_rays(models,
                         inputs += [a_embedded_[i:i+chunk]]
                     if model.encode_transient:
                         inputs += [t_embedded_[i:i+chunk]]
-                # TODO: add has transient option in the kwargs
-                out_chunks += [model(torch.cat([inputs], 1), output_transient=typ=='fine')]
+                # TODO: add output_transient option in the kwargs
+                out_chunks += [model(torch.cat(inputs, 1),
+                                     output_transient=(typ=='fine' and model.encode_transient))]
 
             out = torch.cat(out_chunks, 0)
             out = rearrange(out, '(n1 n2) c -> n1 n2 c', n1=N_rays, n2=N_samples_)
@@ -158,7 +159,7 @@ def render_rays(models,
             alphas = 1-torch.exp(-deltas*torch.relu(static_sigmas+noise))
 
         alphas_shifted = \
-            torch.cat([torch.ones_like(alphas[:, :1]), 1-alphas+1e-10], -1) # [1, 1-a1, 1-a2, ...]
+            torch.cat([torch.ones_like(alphas[:, :1]), 1-alphas], -1) # [1, 1-a1, 1-a2, ...]
         transmittance = torch.cumprod(alphas_shifted[:, :-1], -1) # [1, 1-a1, (1-a1)(1-a2), ...]
 
         if typ == 'fine' and model.encode_transient:
@@ -178,23 +179,43 @@ def render_rays(models,
 
         if typ == 'fine' and model.encode_transient:
             static_rgb_map = reduce(rearrange(static_weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
-                                              'n1 n2 c -> n1 c', 'sum')
+                                    'n1 n2 c -> n1 c', 'sum')
             if white_back:
-                static_rgb_map = static_rgb_map + 1-rearrange(weights_sum, 'n -> n 1')
+                static_rgb_map += 1-rearrange(weights_sum, 'n -> n 1')
             
             transient_rgb_map = \
                 reduce(rearrange(transient_weights, 'n1 n2 -> n1 n2 1')*transient_rgbs,
-                                 'n1 n2 c -> n1 c', 'sum')
+                       'n1 n2 c -> n1 c', 'sum')
             results['beta'] = model.beta_min + \
                               reduce(transient_weights*transient_betas, 'n1 n2 -> n1', 'sum')
-            results['rgb_fine_static'] = static_rgb_map
-            results['rgb_fine_transient'] = transient_rgb_map
             results[f'rgb_{typ}'] = static_rgb_map + transient_rgb_map
-        else:
+
+            if test_time:
+                # Compute also static and transient rgbs when only one field exists.
+                # The result is different from when both fields exist.
+                static_alphas_shifted = \
+                    torch.cat([torch.ones_like(static_alphas[:, :1]), 1-static_alphas], -1)
+                static_transmittance = torch.cumprod(static_alphas_shifted[:, :-1], -1)
+                static_weights_ = static_alphas * static_transmittance
+                static_rgb_map_ = \
+                    reduce(rearrange(static_weights_, 'n1 n2 -> n1 n2 1')*static_rgbs,
+                           'n1 n2 c -> n1 c', 'sum')
+                if white_back:
+                    static_rgb_map_ += 1-rearrange(weights_sum, 'n -> n 1')
+                results['rgb_fine_static'] = static_rgb_map_
+
+                transient_alphas_shifted = \
+                    torch.cat([torch.ones_like(transient_alphas[:, :1]), 1-transient_alphas], -1)
+                transient_transmittance = torch.cumprod(transient_alphas_shifted[:, :-1], -1)
+                transient_weights_ = transient_alphas * transient_transmittance
+                results['rgb_fine_transient'] = \
+                    reduce(rearrange(transient_weights_, 'n1 n2 -> n1 n2 1')*transient_rgbs,
+                       'n1 n2 c -> n1 c', 'sum')
+        else: # no transient field
             rgb_map = reduce(rearrange(weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
                                         'n1 n2 c -> n1 c', 'sum')
             if white_back:
-                rgb_map = rgb_map + 1-rearrange(weights_sum, 'n -> n 1')
+                rgb_map += 1-rearrange(weights_sum, 'n -> n 1')
             results[f'rgb_{typ}'] = rgb_map
 
         # TODO: separate depth for static and transient

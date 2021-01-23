@@ -64,7 +64,7 @@ class NeRF(nn.Module):
         self.skips = skips
 
         self.encode_appearance = encode_appearance
-        self.in_channels_a = in_channels_a
+        self.in_channels_a = in_channels_a if encode_appearance else 0
         self.encode_transient = encode_transient
         self.in_channels_t = in_channels_t
         self.beta_min = beta_min
@@ -83,7 +83,7 @@ class NeRF(nn.Module):
 
         # direction encoding layers
         self.dir_encoding = nn.Sequential(
-                                nn.Linear(W+in_channels_dir+in_channels_a, W//2),
+                                nn.Linear(W+in_channels_dir+self.in_channels_a, W//2),
                                 nn.ReLU(True))
 
         # static output layers
