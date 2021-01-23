@@ -65,11 +65,9 @@ You can monitor the training process by `tensorboard --logdir logs/` and go to `
 ## Pretrained models and logs
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
 
-## Comparison with the paper
-
 # :mag_right: Testing
 
-Example: [test_nerf-u.ipynb](test_nerf-u.ipynb) shows how NeRF-U successfully decomposes the scene into static and transient components.
+Example: [test_nerfu_occ.ipynb](test_nerfu_occ.ipynb) shows how NeRF-U successfully decomposes the scene into static and transient components when the scene has random occluders.
 
 Use [eval.py](eval.py) to create the whole sequence of moving views.
 E.g.
