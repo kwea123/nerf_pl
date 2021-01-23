@@ -46,7 +46,7 @@ def get_opts():
                         help='whether to encode transient object (NeRF-U)')
     parser.add_argument('--N_tau', type=int, default=16,
                         help='number of embeddings for transient objects')
-    parser.add_argument('--beta_min', type=float, default=0.03,
+    parser.add_argument('--beta_min', type=float, default=0.1,
                         help='minimum color variance for each ray')
 
     parser.add_argument('--batch_size', type=int, default=1024,

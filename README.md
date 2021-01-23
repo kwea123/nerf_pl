@@ -69,7 +69,7 @@ Download the pretrained models and training logs in [release](https://github.com
 
 # :mag_right: Testing
 
-See [test.ipynb](test.ipynb) for a simple view synthesis and depth prediction on 1 image.
+Example: [test_nerf-u.ipynb](test_nerf-u.ipynb) shows how NeRF-U successfully decomposes the scene into static and transient components.
 
 Use [eval.py](eval.py) to create the whole sequence of moving views.
 E.g.
@@ -79,14 +79,22 @@ python eval.py \
    --dataset_name blender --scene_name lego \
    --img_wh 400 400 --N_importance 64 --ckpt_path $CKPT_PATH
 ```
-**IMPORTANT** : Don't forget to add `--spheric_poses` if the model is trained under `--spheric` setting!
 
 It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
-
+Example of lego scene using pretrained **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
+![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
 
 # :warning: Notes on differences with the original repo
 
-*  The learning rate decay in the original repo is **by step**, which means it decreases every step, here I use learning rate decay **by epoch**, which means it changes only at the end of 1 epoch.
-*  The validation image for LLFF dataset is chosen as the most centered image here, whereas the original repo chooses every 8th image.
-*  The rendering spiral path is slightly different from the original repo (I use approximate values to simplify the code).
+*  Network structure ([nerf.py](models/nerf.py)):
+  *  My base MLP uses 8 layers of 256 units as the original NeRF, while NeRF-W uses **512** units each.
+  *  My static head uses 1 layer as the original NeRF, while NeRF-W uses **4** layers.
+  *  I use **softplus** activation for sigma (reason explained [here](https://github.com/bmild/nerf/issues/29#issuecomment-765335765)) while NeRF-W uses **relu**.
+
+*  Training hyperparameters
+  *  I find larger `beta_min` achieves better result, so my default `beta_min` is `0.1` instead of `0.03` in the paper.
+  *  I add 3 to `beta_loss` (equation 13) to make it positive empirically.
+
+*  Evalutaion
+  *  The evaluation metric is computed on the **test** set, while NeRF evaluates on val and test combined.

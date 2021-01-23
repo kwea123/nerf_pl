@@ -23,17 +23,16 @@ def get_opts():
                         default='/home/ubuntu/data/nerf_example_data/nerf_synthetic/lego',
                         help='root directory of dataset')
     parser.add_argument('--dataset_name', type=str, default='blender',
-                        choices=['blender', 'llff'],
+                        choices=['blender'],
                         help='which dataset to validate')
     parser.add_argument('--scene_name', type=str, default='test',
                         help='scene name, used as output folder name')
-    parser.add_argument('--split', type=str, default='test',
-                        help='test or test_train')
+    parser.add_argument('--split', type=str, default='val',
+                        choices=['val', 'test', 'test_train'])
     parser.add_argument('--img_wh', nargs="+", type=int, default=[800, 800],
                         help='resolution (img_w, img_h) of the image')
-    parser.add_argument('--spheric_poses', default=False, action="store_true",
-                        help='whether images are taken in spheric poses (for llff)')
 
+    # original NeRF parameters
     parser.add_argument('--N_emb_xyz', type=int, default=10,
                         help='number of xyz embedding frequencies')
     parser.add_argument('--N_emb_dir', type=int, default=4,
@@ -45,9 +44,19 @@ def get_opts():
     parser.add_argument('--use_disp', default=False, action="store_true",
                         help='use disparity depth sampling')
 
+    # NeRF-W parameters
+    parser.add_argument('--N_vocab', type=int, default=100,
+                        help='''number of vocabulary (number of images) 
+                                in the dataset for nn.Embedding''')
+    parser.add_argument('--encode_a', default=False, action="store_true",
+                        help='whether to encode appearance (NeRF-A)')
+    parser.add_argument('--N_a', type=int, default=48,
+                        help='number of embeddings for appearance')
+    parser.add_argument('--encode_t', default=False, action="store_true",
+                        help='whether to encode transient object (NeRF-U)')
     parser.add_argument('--N_tau', type=int, default=16,
                         help='number of embeddings for transient objects')
-    parser.add_argument('--beta_min', type=float, default=0.03,
+    parser.add_argument('--beta_min', type=float, default=0.1,
                         help='minimum color variance for each ray')
 
     parser.add_argument('--chunk', type=int, default=32*1024*4,
@@ -55,12 +64,6 @@ def get_opts():
 
     parser.add_argument('--ckpt_path', type=str, required=True,
                         help='pretrained checkpoint path to load')
-
-    parser.add_argument('--save_depth', default=False, action="store_true",
-                        help='whether to save depth prediction')
-    parser.add_argument('--depth_format', type=str, default='pfm',
-                        choices=['pfm', 'bytes'],
-                        help='which format to save')
 
     return parser.parse_args()
 
@@ -103,24 +106,32 @@ if __name__ == "__main__":
     kwargs = {'root_dir': args.root_dir,
               'split': args.split,
               'img_wh': tuple(args.img_wh)}
-    if args.dataset_name == 'llff':
-        kwargs['spheric_poses'] = args.spheric_poses
     dataset = dataset_dict[args.dataset_name](**kwargs)
 
-    embedding_t = torch.nn.Embedding(200, args.N_tau)
     embedding_xyz = PosEmbedding(args.N_emb_xyz-1, args.N_emb_xyz)
     embedding_dir = PosEmbedding(args.N_emb_dir-1, args.N_emb_dir)
-    nerf_coarse = NeRF('coarse')
-    nerf_fine = NeRF('fine', beta_min=args.beta_min)
-    load_ckpt(embedding_t, args.ckpt_path, model_name='embedding_t')
+    embeddings = {'xyz': embedding_xyz, 'dir': embedding_dir}
+    if args.encode_a:
+        embedding_a = torch.nn.Embedding(args.N_vocab, args.N_a).cuda()
+        load_ckpt(embedding_a, args.ckpt_path, model_name='embedding_a')
+        embeddings['a'] = embedding_a
+    if args.encode_t:
+        embedding_t = torch.nn.Embedding(args.N_vocab, args.N_tau).cuda()
+        load_ckpt(embedding_t, args.ckpt_path, model_name='embedding_t')
+        embeddings['t'] = embedding_t
+
+    nerf_coarse = NeRF('coarse').cuda()
+    nerf_fine = NeRF('fine',
+                    encode_appearance=args.encode_a,
+                    in_channels_a=args.N_a,
+                    encode_transient=args.encode_t,
+                    in_channels_t=args.N_tau,
+                    beta_min=args.beta_min).cuda()
+
     load_ckpt(nerf_coarse, args.ckpt_path, model_name='nerf_coarse')
     load_ckpt(nerf_fine, args.ckpt_path, model_name='nerf_fine')
-    embedding_t.cuda()
-    nerf_coarse.cuda()
-    nerf_fine.cuda()
 
     models = {'coarse': nerf_coarse, 'fine': nerf_fine}
-    embeddings = {'xyz': embedding_xyz, 'dir': embedding_dir, 't': embedding_t}
 
     imgs, psnrs = [], []
     dir_name = f'results/{args.dataset_name}/{args.scene_name}'
@@ -137,15 +148,6 @@ if __name__ == "__main__":
 
         img_pred = results['rgb_fine'].view(h, w, 3).cpu().numpy()
         
-        if args.save_depth:
-            depth_pred = results['depth_fine'].view(h, w).cpu().numpy()
-            depth_pred = np.nan_to_num(depth_pred)
-            if args.depth_format == 'pfm':
-                save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
-            else:
-                with open(f'depth_{i:03d}', 'wb') as f:
-                    f.write(depth_pred.tobytes())
-
         img_pred_ = (img_pred*255).astype(np.uint8)
         imgs += [img_pred_]
         imageio.imwrite(os.path.join(dir_name, f'{i:03d}.png'), img_pred_)
