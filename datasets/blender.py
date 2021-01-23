@@ -65,8 +65,8 @@ class BlenderDataset(Dataset):
                     if 'occ' in self.perturbation:
                         draw = ImageDraw.Draw(img)
                         np.random.seed(t)
-                        left = np.random.randint(200, 600)
-                        top = np.random.randint(200, 600)
+                        left = np.random.randint(200, 400)
+                        top = np.random.randint(200, 400)
                         for i in range(10):
                             np.random.seed(10*t+i)
                             random_color = tuple(np.random.choice(range(256), 3))
@@ -120,8 +120,8 @@ class BlenderDataset(Dataset):
                 if 'occ' in self.perturbation:
                     draw = ImageDraw.Draw(img)
                     np.random.seed(idx)
-                    left = np.random.randint(200, 600)
-                    top = np.random.randint(200, 600)
+                    left = np.random.randint(200, 400)
+                    top = np.random.randint(200, 400)
                     for i in range(10):
                         np.random.seed(10*idx+i)
                         random_color = tuple(np.random.choice(range(256), 3))
@@ -151,8 +151,10 @@ class BlenderDataset(Dataset):
                 img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
                 img = img.resize(self.img_wh, Image.LANCZOS)
                 img = self.transform(img) # (4, H, W)
+                valid_mask = (img[-1]>0).flatten() # (H*W) valid color area
                 img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
                 img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # blend A to RGB
                 sample['original_rgbs'] = img
+                sample['original_valid_mask'] = valid_mask
 
         return sample
