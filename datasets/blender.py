@@ -8,6 +8,27 @@ from torchvision import transforms as T
 
 from .ray_utils import *
 
+def add_perturbation(img, perturbation, seed):
+    if 'color' in perturbation:
+        np.random.seed(seed)
+        img_np = np.array(img)/255.0
+        s = np.random.uniform(0.8, 1.2, size=3)
+        b = np.random.uniform(-0.2, 0.2, size=3)
+        img_np[..., :3] = np.clip(s*img_np[..., :3]+b, 0, 1)
+        img = Image.fromarray((255*img_np).astype(np.uint8))
+    if 'occ' in perturbation:
+        draw = ImageDraw.Draw(img)
+        np.random.seed(seed)
+        left = np.random.randint(200, 400)
+        top = np.random.randint(200, 400)
+        for i in range(10):
+            np.random.seed(10*seed+i)
+            random_color = tuple(np.random.choice(range(256), 3))
+            draw.rectangle(((left+20*i, top), (left+20*(i+1), top+200)),
+                            fill=random_color)
+    return img
+
+
 class BlenderDataset(Dataset):
     def __init__(self, root_dir, split='train', img_wh=(800, 800),
                  perturbation=[]):
@@ -60,18 +81,7 @@ class BlenderDataset(Dataset):
                 img = Image.open(image_path)
                 if t != 0: # perturb everything except the first image.
                            # cf. Section D in the supplementary material
-                    if 'color' in self.perturbation:
-                        pass
-                    if 'occ' in self.perturbation:
-                        draw = ImageDraw.Draw(img)
-                        np.random.seed(t)
-                        left = np.random.randint(200, 400)
-                        top = np.random.randint(200, 400)
-                        for i in range(10):
-                            np.random.seed(10*t+i)
-                            random_color = tuple(np.random.choice(range(256), 3))
-                            draw.rectangle(((left+20*i, top), (left+20*(i+1), top+200)),
-                                            fill=random_color)
+                    img = add_perturbation(img, self.perturbation, t)
 
                 img = img.resize(self.img_wh, Image.LANCZOS)
                 img = self.transform(img) # (4, h, w)
@@ -115,18 +125,7 @@ class BlenderDataset(Dataset):
             img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
             if self.split == 'test_train' and idx != 0:
                 t = idx
-                if 'color' in self.perturbation:
-                    pass
-                if 'occ' in self.perturbation:
-                    draw = ImageDraw.Draw(img)
-                    np.random.seed(idx)
-                    left = np.random.randint(200, 400)
-                    top = np.random.randint(200, 400)
-                    for i in range(10):
-                        np.random.seed(10*idx+i)
-                        random_color = tuple(np.random.choice(range(256), 3))
-                        draw.rectangle(((left+20*i, top), (left+20*(i+1), top+200)),
-                                        fill=random_color)
+                img = add_perturbation(img, self.perturbation, idx)
             img = img.resize(self.img_wh, Image.LANCZOS)
             img = self.transform(img) # (4, H, W)
             valid_mask = (img[-1]>0).flatten() # (H*W) valid color area
