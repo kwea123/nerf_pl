@@ -146,4 +146,13 @@ class BlenderDataset(Dataset):
                       'c2w': c2w,
                       'valid_mask': valid_mask}
 
+            if self.split == 'test_train' and self.perturbation:
+                 # append the original (unperturbed) image
+                img = Image.open(os.path.join(self.root_dir, f"{frame['file_path']}.png"))
+                img = img.resize(self.img_wh, Image.LANCZOS)
+                img = self.transform(img) # (4, H, W)
+                img = img.view(4, -1).permute(1, 0) # (H*W, 4) RGBA
+                img = img[:, :3]*img[:, -1:] + (1-img[:, -1:]) # blend A to RGB
+                sample['original_rgbs'] = img
+
         return sample

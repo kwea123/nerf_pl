@@ -192,7 +192,8 @@ def render_rays(models,
 
             if test_time:
                 # Compute also static and transient rgbs when only one field exists.
-                # The result is different from when both fields exist.
+                # The result is different from when both fields exist, since the transimttance
+                # will change.
                 static_alphas_shifted = \
                     torch.cat([torch.ones_like(static_alphas[:, :1]), 1-static_alphas], -1)
                 static_transmittance = torch.cumprod(static_alphas_shifted[:, :-1], -1)
@@ -203,6 +204,8 @@ def render_rays(models,
                 if white_back:
                     static_rgb_map_ += 1-rearrange(weights_sum, 'n -> n 1')
                 results['rgb_fine_static'] = static_rgb_map_
+                results['depth_fine_static'] = \
+                    reduce(static_weights_*z_vals, 'n1 n2 -> n1', 'sum')
 
                 transient_alphas_shifted = \
                     torch.cat([torch.ones_like(transient_alphas[:, :1]), 1-transient_alphas], -1)
@@ -211,6 +214,8 @@ def render_rays(models,
                 results['rgb_fine_transient'] = \
                     reduce(rearrange(transient_weights_, 'n1 n2 -> n1 n2 1')*transient_rgbs,
                        'n1 n2 c -> n1 c', 'sum')
+                results['depth_fine_transient'] = \
+                    reduce(transient_weights_*z_vals, 'n1 n2 -> n1', 'sum')
         else: # no transient field
             rgb_map = reduce(rearrange(weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
                                         'n1 n2 c -> n1 c', 'sum')
@@ -218,9 +223,7 @@ def render_rays(models,
                 rgb_map += 1-rearrange(weights_sum, 'n -> n 1')
             results[f'rgb_{typ}'] = rgb_map
 
-        # TODO: separate depth for static and transient
         results[f'depth_{typ}'] = reduce(weights*z_vals, 'n1 n2 -> n1', 'sum')
-
         return
 
     embedding_xyz, embedding_dir = embeddings['xyz'], embeddings['dir']
@@ -230,13 +233,13 @@ def render_rays(models,
     rays_o, rays_d = rays[:, 0:3], rays[:, 3:6] # both (N_rays, 3)
     near, far = rays[:, 6:7], rays[:, 7:8] # both (N_rays, 1)
     # Embed direction
-    dir_embedded = embedding_dir(kwargs.get('view_dir', rays_d)) # (N_rays, embed_dir_channels)
+    dir_embedded = embedding_dir(kwargs.get('view_dir', rays_d))
 
     rays_o = rearrange(rays_o, 'n1 c -> n1 1 c')
     rays_d = rearrange(rays_d, 'n1 c -> n1 1 c')
 
     # Sample depth points
-    z_steps = torch.linspace(0, 1, N_samples, device=rays.device) # (N_samples)
+    z_steps = torch.linspace(0, 1, N_samples, device=rays.device)
     if not use_disp: # use linear sampling in depth space
         z_vals = near * (1-z_steps) + far * z_steps
     else: # use linear sampling in disparity space
