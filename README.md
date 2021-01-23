@@ -31,10 +31,16 @@ Download `nerf_synthetic.zip` from [here](https://drive.google.com/drive/folders
 All random seeds are fixed to reproduce the same perturbations every time.
 
 *  Color perturbations: Uses the same parameters in the paper.
-  
-*  Occlusions: The square has size 200x200 (should be the same as the paper), the position is randomly sampled inside the middle 400x400 area; the 10 colors are random.
+
+![color](https://user-images.githubusercontent.com/11364490/105580035-4ad3b780-5dcd-11eb-97cc-4cea3c9743ac.gif)
+
+*  Occlusions: The square has size 200x200 (should be the same as the paper), the position is randomly sampled inside the central 400x400 area; the 10 colors are random.
 
 ![occ](https://user-images.githubusercontent.com/11364490/105578658-283da080-5dc5-11eb-9438-9368ee241cde.gif)
+
+*  Combined: First perturb the color then add square.
+
+![combined](https://user-images.githubusercontent.com/11364490/105580018-31cb0680-5dcd-11eb-82bf-eca3133f2586.gif)
 
 ### Training model
 
@@ -103,6 +109,7 @@ Example of lego scene using pretrained **NeRF-U** model under **occluder** condi
 *  Training hyperparameters
     *  I find larger `beta_min` achieves better result, so my default `beta_min` is `0.1` instead of `0.03` in the paper.
     *  I add 3 to `beta_loss` (equation 13) to make it positive empirically.
+    *  When there is no transient head (NeRF-A), the loss is the average MSE error of coarse and fine models (not specified in the paper).
 
 *  Evalutaion
     *  The evaluation metric is computed on the **test** set, while NeRF evaluates on val and test combined.
