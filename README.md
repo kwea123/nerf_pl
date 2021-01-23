@@ -26,6 +26,15 @@ Unofficial implementation of [NeRF-W](https://nerf-w.github.io/) (NeRF in the wi
 
 Download `nerf_synthetic.zip` from [here](https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1)
 
+### Data perturbations
+
+All random seeds are fixed to reproduce the same perturbations every time.
+
+*  Color perturbation: Uses the same parameters in the paper.
+  
+*  Occlusions: The square has size 200x200 (should be the same as the paper), the position is randomly sampled inside the middle 400x400 area; the 10 colors are random.
+![occ](https://user-images.githubusercontent.com/11364490/105578658-283da080-5dc5-11eb-9438-9368ee241cde.gif)
+
 ### Training model
 
 Base:
@@ -82,10 +91,6 @@ It will create folder `results/{dataset_name}/{scene_name}` and run inference on
 
 Example of lego scene using pretrained **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
 ![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
-
-For reference, the occluder dataset looks like:
-
-![occ](https://user-images.githubusercontent.com/11364490/105578658-283da080-5dc5-11eb-9438-9368ee241cde.gif)
 
 # :warning: Notes on differences with the original repo
 
