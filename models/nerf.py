@@ -35,7 +35,7 @@ class NeRF(nn.Module):
                  D=8, W=256,
                  in_channels_xyz=63, in_channels_dir=27,
                  skips=[4],
-                 encode_appearance=False, in_channels_a=0,
+                 encode_appearance=False, in_channels_a=48,
                  encode_transient=False, in_channels_t=16,
                  beta_min=0.03):
         """
@@ -90,18 +90,17 @@ class NeRF(nn.Module):
         self.static_sigma = nn.Sequential(nn.Linear(W, 1), nn.Softplus())
         self.static_rgb = nn.Sequential(nn.Linear(W//2, 3), nn.Sigmoid())
 
-        if typ == 'fine':
-            if encode_transient:
-                # transient encoding layers
-                self.transient_encoding = nn.Sequential(
-                                            nn.Linear(W+in_channels_t, W//2), nn.ReLU(True),
-                                            nn.Linear(W//2, W//2), nn.ReLU(True),
-                                            nn.Linear(W//2, W//2), nn.ReLU(True),
-                                            nn.Linear(W//2, W//2), nn.ReLU(True))
-                # transient output layers
-                self.transient_sigma = nn.Sequential(nn.Linear(W//2, 1), nn.Softplus())
-                self.transient_rgb = nn.Sequential(nn.Linear(W//2, 3), nn.Sigmoid())
-                self.transient_beta = nn.Sequential(nn.Linear(W//2, 1), nn.Softplus())
+        if self.encode_transient:
+            # transient encoding layers
+            self.transient_encoding = nn.Sequential(
+                                        nn.Linear(W+in_channels_t, W//2), nn.ReLU(True),
+                                        nn.Linear(W//2, W//2), nn.ReLU(True),
+                                        nn.Linear(W//2, W//2), nn.ReLU(True),
+                                        nn.Linear(W//2, W//2), nn.ReLU(True))
+            # transient output layers
+            self.transient_sigma = nn.Sequential(nn.Linear(W//2, 1), nn.Softplus())
+            self.transient_rgb = nn.Sequential(nn.Linear(W//2, 3), nn.Sigmoid())
+            self.transient_beta = nn.Sequential(nn.Linear(W//2, 1), nn.Softplus())
 
     def forward(self, x, sigma_only=False, output_transient=True):
         """
