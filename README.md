@@ -30,6 +30,8 @@ Download `nerf_synthetic.zip` from [here](https://drive.google.com/drive/folders
 
 All random seeds are fixed to reproduce the same perturbations every time.
 
+For detailed implementation, see [blender.py](datasets/blender.py).
+
 *  Color perturbations: Uses the same parameters in the paper.
 
 ![color](https://user-images.githubusercontent.com/11364490/105580035-4ad3b780-5dcd-11eb-97cc-4cea3c9743ac.gif)
