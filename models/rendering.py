@@ -205,12 +205,12 @@ def render_rays(models,
                 transient_weights_ = transient_alphas * transient_transmittance
                 results['rgb_fine_transient'] = \
                     reduce(rearrange(transient_weights_, 'n1 n2 -> n1 n2 1')*transient_rgbs,
-                       'n1 n2 c -> n1 c', 'sum')
+                           'n1 n2 c -> n1 c', 'sum')
                 results['depth_fine_transient'] = \
                     reduce(transient_weights_*z_vals, 'n1 n2 -> n1', 'sum')
         else: # no transient field
             rgb_map = reduce(rearrange(weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
-                                        'n1 n2 c -> n1 c', 'sum')
+                             'n1 n2 c -> n1 c', 'sum')
             if white_back:
                 rgb_map += 1-rearrange(weights_sum, 'n -> n 1')
             results[f'rgb_{typ}'] = rgb_map
