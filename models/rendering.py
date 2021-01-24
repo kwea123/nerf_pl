@@ -175,8 +175,11 @@ def render_rays(models,
             transient_rgb_map = \
                 reduce(rearrange(transient_weights, 'n1 n2 -> n1 n2 1')*transient_rgbs,
                        'n1 n2 c -> n1 c', 'sum')
-            results['beta'] = model.beta_min + \
-                              reduce(transient_weights*transient_betas, 'n1 n2 -> n1', 'sum')
+            results['beta'] = reduce(transient_weights*transient_betas, 'n1 n2 -> n1', 'sum')
+            # Add beta_min AFTER the beta composition. Different from eq 10~12 in the paper.
+            # See "Notes on differences with the paper" in README.
+            results['beta'] += model.beta_min
+                               
             results[f'rgb_{typ}'] = static_rgb_map + transient_rgb_map
 
             if test_time:
