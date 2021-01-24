@@ -121,17 +121,17 @@ python eval.py \
 
 It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
-### Lego examples
+## Lego examples
 
-All my experiments are done with image size 200x200, so theoretically PSNR is expected to be lower
+All my experiments are done with image size 200x200, so theoretically PSNR is expected to be lower.
 
-1.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows that NeRF-U is able to decompose the scene into static and transient components when the scene has random occluders. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ) **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
-
-![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
-
-2.  [test_nerfa_color](test_nerfa_color.ipynb) shows that NeRF-A is able to capture image-dependent color variations. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfa_color) **NeRF-A** model under **color perturbation** condition: (PSNR=28.20, paper=30.66)
+1.  [test_nerfa_color](test_nerfa_color.ipynb) shows that NeRF-A is able to capture image-dependent color variations. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfa_color) **NeRF-A** model under **color perturbation** condition: (PSNR=28.20, paper=30.66)
 
 ![nerfa_color](https://user-images.githubusercontent.com/11364490/105626088-0a2d7a00-5e71-11eb-926d-2f7d18816462.gif)
+
+2.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows that NeRF-U is able to decompose the scene into static and transient components when the scene has random occluders. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ) **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
+
+![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
 
 3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle color variation and decompose the scene into static and transient components (color variation is not that well learnt though, maybe adding more layers in the static rgb head will help). Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfw_all) **NeRF-W** model under **color perturbation & occluder** condition: (PSNR=24.86, paper=22.19)
 
@@ -139,7 +139,7 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 4. Reference: Original NeRF (without `--encode_a` and `--encode_t`) trained on unperturbed data: (PSNR=, paper=32.89)
 
-### Brandenburg Gate of Phototourism dataset
+## Brandenburg Gate of Phototourism dataset
 
 To be updated.
 
