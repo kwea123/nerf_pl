@@ -97,12 +97,13 @@ It will create folder `results/{dataset_name}/{scene_name}` and run inference on
 
 Examples: 
 
-1.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows how NeRF-U successfully decomposes the scene into static and transient components when the scene has random occluders. Using pretrained **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
+1.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows how NeRF-U successfully decomposes the scene into static and transient components when the scene has random occluders. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ) **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
 
 ![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
 
-2.  [test_nerfa_color](test_nerfa_color.ipynb) shows that NeRF-A is able to capture image-dependent color variations. Using pretrained **NeRF-A** model under **color perturbation** condition: (PSNR=28.07, paper=30.66)
+2.  [test_nerfa_color](test_nerfa_color.ipynb) shows that NeRF-A is able to capture image-dependent color variations. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfa_color) **NeRF-A** model under **color perturbation** condition: (PSNR=28.07, paper=30.66)
 
+![nerfa_color](https://user-images.githubusercontent.com/11364490/105621231-b7d86300-5e48-11eb-9539-44fd9ffca206.gif)
 
 3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle image-dependent color variation and decompose the scene into static and transient components.
 
