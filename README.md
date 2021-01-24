@@ -93,7 +93,7 @@ E.g.
 ```
 python eval.py \
    --root_dir $BLENDER \
-   --dataset_name blender --scene_name lego \
+   --dataset_name blender --scene_name lego --split test \
    --img_wh 400 400 --N_importance 64 --ckpt_path $CKPT_PATH
 ```
 
@@ -105,9 +105,9 @@ Examples:
 
 ![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
 
-2.  [test_nerfa_color](test_nerfa_color.ipynb) shows that NeRF-A is able to capture image-dependent color variations. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfa_color) **NeRF-A** model under **color perturbation** condition: (PSNR=28.07, paper=30.66)
+2.  [test_nerfa_color](test_nerfa_color.ipynb) shows that NeRF-A is able to capture image-dependent color variations. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfa_color) **NeRF-A** model under **color perturbation** condition: (PSNR=28.20, paper=30.66)
 
-![nerfa_color](https://user-images.githubusercontent.com/11364490/105621231-b7d86300-5e48-11eb-9539-44fd9ffca206.gif)
+![nerfa_color](https://user-images.githubusercontent.com/11364490/105626088-0a2d7a00-5e71-11eb-926d-2f7d18816462.gif)
 
 3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle color variation and decompose the scene into static and transient components.
 
@@ -115,6 +115,7 @@ Examples:
 
 *  Network structure ([nerf.py](models/nerf.py)):
     *  My base MLP uses 8 layers of 256 units as the original NeRF, while NeRF-W uses **512** units each.
+    *  The static rgb head uses **1** layer as the original NeRF, while NeRF-W uses **4** layers. Empirically I found more layers to overfit when there is data perturbation, as it tends to explain the color change by the view change as well.
     *  I use **softplus** activation for sigma (reason explained [here](https://github.com/bmild/nerf/issues/29#issuecomment-765335765)) while NeRF-W uses **relu**.
 
 *  Training hyperparameters
@@ -122,6 +123,3 @@ Examples:
     *  I add 3 to `beta_loss` (equation 13) to make it positive empirically.
     *  When there is no transient head (NeRF-A), the loss is the average MSE error of coarse and fine models (not specified in the paper).
     *  Other hyperparameters differ quite a lot from the paper (although many are not specified, they say that they use grid search to find the best). Please check each pretrained models in the release.
-
-*  Evalutaion
-    *  The evaluation metric is computed on the **unperturbed test** set, while NeRF evaluates on val and test combined.
