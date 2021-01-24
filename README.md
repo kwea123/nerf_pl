@@ -95,7 +95,7 @@ Example training loss evolution (NeRF-U on occluders):
 
 ### Data download
 
-Download the scenes you want from [here](https://www.cs.ubc.ca/~kmyi/imw2020/data.html)
+Download the scenes you want from [here](https://www.cs.ubc.ca/~kmyi/imw2020/data.html) (train/test splits are only provided for "Brandenburg Gate", "Sacre Coeur" and "Trevi Fountain", if you want to train on other scenes, you need to clean the data (Section C) and split the data by yourself)
 
 Download the train/test split from the "Additional links" [here](https://nerf-w.github.io/) and put under each scene's folder (the **same level** as the "dense" folder)
 
