@@ -123,7 +123,7 @@ def render_rays(models,
                     inputs += [t_embedded_[i:i+chunk]]
                 # TODO: add output_transient option in the kwargs
                 out_chunks += [model(torch.cat(inputs, 1),
-                                     output_transient=(typ=='fine' and model.encode_transient))]
+                                     output_transient=model.encode_transient)]
 
             out = torch.cat(out_chunks, 0)
             out = rearrange(out, '(n1 n2) c -> n1 n2 c', n1=N_rays, n2=N_samples_)
