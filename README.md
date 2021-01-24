@@ -2,6 +2,8 @@
 
 Unofficial implementation of [NeRF-W](https://nerf-w.github.io/) (NeRF in the wild) using pytorch ([pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning)). I try to reproduce (some of) the results on the lego dataset (Section D). Training on real images (as the main content of the paper) cannot be realized since the authors don't provide the data.
 
+The code is largely based on NeRF implementation (see master or dev branch), the main difference is the model structure and the rendering process, which can be found in the two files under `models/`.
+
 # :computer: Installation
 
 ## Hardware
