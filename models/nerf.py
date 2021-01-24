@@ -81,10 +81,7 @@ class NeRF(nn.Module):
 
         # direction encoding layers
         self.dir_encoding = nn.Sequential(
-                        nn.Linear(W+in_channels_dir+self.in_channels_a, W//2), nn.ReLU(True),
-                        nn.Linear(W//2, W//2), nn.ReLU(True),
-                        nn.Linear(W//2, W//2), nn.ReLU(True),
-                        nn.Linear(W//2, W//2), nn.ReLU(True))
+                        nn.Linear(W+in_channels_dir+self.in_channels_a, W//2), nn.ReLU(True))
 
         # static output layers
         self.static_sigma = nn.Sequential(nn.Linear(W, 1), nn.Softplus())

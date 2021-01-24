@@ -79,6 +79,10 @@ See [opt.py](opt.py) for all configurations.
 
 You can monitor the training process by `tensorboard --logdir logs/` and go to `localhost:6006` in your browser.
 
+Example training loss evolution (NeRF-U on occluders):
+
+![log](https://user-images.githubusercontent.com/11364490/105621776-a72aeb80-5e4e-11eb-9d12-c8b6f2336d25.png)
+
 ## Pretrained models and logs
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
 
@@ -97,7 +101,7 @@ It will create folder `results/{dataset_name}/{scene_name}` and run inference on
 
 Examples: 
 
-1.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows how NeRF-U successfully decomposes the scene into static and transient components when the scene has random occluders. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ) **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
+1.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows that NeRF-U is able to decompose the scene into static and transient components when the scene has random occluders. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ) **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
 
 ![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
 
@@ -105,7 +109,7 @@ Examples:
 
 ![nerfa_color](https://user-images.githubusercontent.com/11364490/105621231-b7d86300-5e48-11eb-9539-44fd9ffca206.gif)
 
-3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle image-dependent color variation and decompose the scene into static and transient components.
+3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle color variation and decompose the scene into static and transient components.
 
 # :warning: Notes on differences with the paper
 
@@ -114,7 +118,7 @@ Examples:
     *  I use **softplus** activation for sigma (reason explained [here](https://github.com/bmild/nerf/issues/29#issuecomment-765335765)) while NeRF-W uses **relu**.
 
 *  Training hyperparameters
-    *  I find larger `beta_min` achieves better result, so my default `beta_min` is `0.1` instead of `0.03` in the paper.
+    *  I find larger (but not too large) `beta_min` achieves better result, so my default `beta_min` is `0.1` instead of `0.03` in the paper.
     *  I add 3 to `beta_loss` (equation 13) to make it positive empirically.
     *  When there is no transient head (NeRF-A), the loss is the average MSE error of coarse and fine models (not specified in the paper).
     *  Other hyperparameters differ quite a lot from the paper (although many are not specified, they say that they use grid search to find the best). Please check each pretrained models in the release.
