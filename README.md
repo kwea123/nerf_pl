@@ -1,6 +1,6 @@
 # nerf_pl
 
-Unofficial implementation of [NeRF-W](https://nerf-w.github.io/) (NeRF in the wild) using pytorch ([pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning)). I try to reproduce (some of) the results on the lego dataset (Section D). Training on [real images](https://github.com/ubc-vision/image-matching-benchmark) (as the main content of the paper) is under experiment, and will be updated here soon.
+Unofficial implementation of [NeRF-W](https://nerf-w.github.io/) (NeRF in the wild) using pytorch ([pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning)). I try to reproduce (some of) the results on the lego dataset (Section D). Training on [Phototourism real images](https://github.com/ubc-vision/image-matching-benchmark) (as the main content of the paper) is under experiment, and will be updated here soon.
 
 The code is largely based on NeRF implementation (see master or dev branch), the main difference is the model structure and the rendering process, which can be found in the two files under `models/`.
 
@@ -88,6 +88,23 @@ Example training loss evolution (NeRF-U on occluders):
 
 </details>
 
+## Phototourism dataset
+
+<details>
+  <summary>Steps</summary>
+
+### Data download
+
+Download the scenes you want from [here](https://www.cs.ubc.ca/~kmyi/imw2020/data.html)
+
+Download the train/test split from the "Additional links" [here](https://nerf-w.github.io/) and put under each scene's folder (the **same level** as the "dense" folder)
+
+### Training model
+
+To be updated.
+
+</details>
+
 ## Pretrained models and logs
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
 
@@ -104,7 +121,9 @@ python eval.py \
 
 It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
-Examples (All my experiments are done with image size 200x200, so theoretically PSNR is expected to be lower): 
+### Lego examples
+
+All my experiments are done with image size 200x200, so theoretically PSNR is expected to be lower
 
 1.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows that NeRF-U is able to decompose the scene into static and transient components when the scene has random occluders. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ) **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
 
@@ -120,7 +139,9 @@ Examples (All my experiments are done with image size 200x200, so theoretically 
 
 4. Reference: Original NeRF (without `--encode_a` and `--encode_t`) trained on unperturbed data: (PSNR=, paper=32.89)
 
+### Brandenburg Gate of Phototourism dataset
 
+To be updated.
 
 # :warning: Notes on differences with the paper
 
