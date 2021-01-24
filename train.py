@@ -171,8 +171,8 @@ def main(hparams):
     checkpoint_callback = \
         ModelCheckpoint(filepath=os.path.join(f'ckpts/{hparams.exp_name}',
                                                '{epoch:d}'),
-                        monitor='val/loss',
-                        mode='min',
+                        monitor='val/psnr',
+                        mode='max',
                         save_top_k=5)
 
     logger = TestTubeLogger(save_dir="logs",
