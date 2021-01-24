@@ -21,6 +21,9 @@ The code is largely based on NeRF implementation (see master or dev branch), the
 # :key: Training
 
 ## Blender
+
+<details>
+  <summary>Steps</summary>
    
 ### Data download
 
@@ -82,6 +85,8 @@ You can monitor the training process by `tensorboard --logdir logs/` and go to `
 Example training loss evolution (NeRF-U on occluders):
 
 ![log](https://user-images.githubusercontent.com/11364490/105621776-a72aeb80-5e4e-11eb-9d12-c8b6f2336d25.png)
+
+</details>
 
 ## Pretrained models and logs
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
