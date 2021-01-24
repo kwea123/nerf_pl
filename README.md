@@ -99,7 +99,7 @@ python eval.py \
 
 It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
-Examples: 
+Examples (All my experiments are done with image size 200x200, so theoretically PSNR is expected to be lower): 
 
 1.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows that NeRF-U is able to decompose the scene into static and transient components when the scene has random occluders. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ) **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
 
@@ -112,6 +112,10 @@ Examples:
 3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle color variation and decompose the scene into static and transient components (color variation is not that well learnt though, maybe adding more layers in the static rgb head will help). Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfw_all) **NeRF-W** model under **color perturbation & occluder** condition: (PSNR=24.86, paper=22.19)
 
 ![nerfw_all](https://user-images.githubusercontent.com/11364490/105630746-43c0ae00-5e8e-11eb-856a-e6ce7ac8c16f.gif)
+
+4. Reference: Original NeRF (without `--encode_a` and `--encode_t`) trained on unperturbed data: (PSNR=, paper=32.89)
+
+
 
 # :warning: Notes on differences with the paper
 
