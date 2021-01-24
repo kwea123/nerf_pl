@@ -1,6 +1,6 @@
 # nerf_pl
 
-### This branch is still under construction. Current progress: successfully reproduced NeRF-U locally.
+### This branch is still under construction. The code is ready to train, I just need more time to run all experiments.
 
 Unofficial implementation of [NeRF-W](https://nerf-w.github.io/) (NeRF in the wild) using pytorch ([pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning)). I tried to reproduce the results on the lego dataset (Section D). Training on real images (as the main content of the paper) cannot be realized since the authors didn't provide the data.
 
@@ -29,7 +29,6 @@ Download `nerf_synthetic.zip` from [here](https://drive.google.com/drive/folders
 ### Data perturbations
 
 All random seeds are fixed to reproduce the same perturbations every time.
-
 For detailed implementation, see [blender.py](datasets/blender.py).
 
 *  Color perturbations: Uses the same parameters in the paper.
@@ -74,7 +73,7 @@ python train.py \
    --encode_t --beta_min 0.1
 ```
 
-To train NeRF-U on "occluders" (Table 3).
+To train NeRF-U on occluders (Table 3 bottom left).
 
 See [opt.py](opt.py) for all configurations.
 
@@ -84,8 +83,6 @@ You can monitor the training process by `tensorboard --logdir logs/` and go to `
 Download the pretrained models and training logs in [release](https://github.com/kwea123/nerf_pl/releases).
 
 # :mag_right: Testing
-
-Example: [test_nerfu_occ.ipynb](test_nerfu_occ.ipynb) shows how NeRF-U successfully decomposes the scene into static and transient components when the scene has random occluders.
 
 Use [eval.py](eval.py) to create the whole sequence of moving views.
 E.g.
@@ -98,20 +95,28 @@ python eval.py \
 
 It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
-Example of lego scene using pretrained **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
+Examples: 
+
+1.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows how NeRF-U successfully decomposes the scene into static and transient components when the scene has random occluders. Using pretrained **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
+
 ![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
+
+2.  [test_nerfa_color](test_nerfa_color.ipynb) shows that NeRF-A is able to capture image-dependent color variations. Using pretrained **NeRF-A** model under **color perturbation** condition: (PSNR=28.07, paper=30.66)
+
+
+3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle image-dependent color variation and decompose the scene into static and transient components.
 
 # :warning: Notes on differences with the paper
 
 *  Network structure ([nerf.py](models/nerf.py)):
     *  My base MLP uses 8 layers of 256 units as the original NeRF, while NeRF-W uses **512** units each.
-    *  My static head uses 1 layer as the original NeRF, while NeRF-W uses **4** layers.
     *  I use **softplus** activation for sigma (reason explained [here](https://github.com/bmild/nerf/issues/29#issuecomment-765335765)) while NeRF-W uses **relu**.
 
 *  Training hyperparameters
     *  I find larger `beta_min` achieves better result, so my default `beta_min` is `0.1` instead of `0.03` in the paper.
     *  I add 3 to `beta_loss` (equation 13) to make it positive empirically.
     *  When there is no transient head (NeRF-A), the loss is the average MSE error of coarse and fine models (not specified in the paper).
+    *  Other hyperparameters differ quite a lot from the paper (although many are not specified, they say that they use grid search to find the best). Please check each pretrained models in the release.
 
 *  Evalutaion
-    *  The evaluation metric is computed on the **test** set, while NeRF evaluates on val and test combined.
+    *  The evaluation metric is computed on the **unperturbed test** set, while NeRF evaluates on val and test combined.

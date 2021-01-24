@@ -32,9 +32,8 @@ class PosEmbedding(nn.Module):
 
 class NeRF(nn.Module):
     def __init__(self, typ,
-                 D=8, W=256,
+                 D=8, W=256, skips=[4],
                  in_channels_xyz=63, in_channels_dir=27,
-                 skips=[4],
                  encode_appearance=False, in_channels_a=48,
                  encode_transient=False, in_channels_t=16,
                  beta_min=0.03):
@@ -42,10 +41,10 @@ class NeRF(nn.Module):
         ---Parameters for the original NeRF---
         D: number of layers for density (sigma) encoder
         W: number of hidden units in each layer
+        skips: add skip connection in the Dth layer
         in_channels_xyz: number of input channels for xyz (3+3*10*2=63 by default)
         in_channels_dir: number of input channels for direction (3+3*4*2=27 by default)
         in_channels_t: number of input channels for t
-        skips: add skip connection in the Dth layer
 
         ---Parameters for NeRF-W (used in fine model only as per section 4.3)---
         encode_appearance: whether to add appearance encoding as input (NeRF-A)
@@ -58,10 +57,9 @@ class NeRF(nn.Module):
         self.typ = typ
         self.D = D
         self.W = W
+        self.skips = skips
         self.in_channels_xyz = in_channels_xyz
         self.in_channels_dir = in_channels_dir
-        self.in_channels_t = in_channels_t
-        self.skips = skips
 
         self.encode_appearance = False if typ=='coarse' else encode_appearance
         self.in_channels_a = in_channels_a if encode_appearance else 0
@@ -83,8 +81,10 @@ class NeRF(nn.Module):
 
         # direction encoding layers
         self.dir_encoding = nn.Sequential(
-                                nn.Linear(W+in_channels_dir+self.in_channels_a, W//2),
-                                nn.ReLU(True))
+                        nn.Linear(W+in_channels_dir+self.in_channels_a, W//2), nn.ReLU(True),
+                        nn.Linear(W//2, W//2), nn.ReLU(True),
+                        nn.Linear(W//2, W//2), nn.ReLU(True),
+                        nn.Linear(W//2, W//2), nn.ReLU(True))
 
         # static output layers
         self.static_sigma = nn.Sequential(nn.Linear(W, 1), nn.Softplus())
