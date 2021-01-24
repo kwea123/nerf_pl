@@ -47,6 +47,7 @@ class NeRF(nn.Module):
         in_channels_t: number of input channels for t
 
         ---Parameters for NeRF-W (used in fine model only as per section 4.3)---
+        ---cf. Figure 3 of the paper---
         encode_appearance: whether to add appearance encoding as input (NeRF-A)
         in_channels_a: appearance embedding dimension. n^(a) in the paper
         encode_transient: whether to add transient encoding as input (NeRF-U)
