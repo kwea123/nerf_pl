@@ -4,7 +4,7 @@ from torch import nn
 class PosEmbedding(nn.Module):
     def __init__(self, max_logscale, N_freqs, logscale=True):
         """
-        Defines a function that embeds x to (sin(2^k x), cos(2^k x), ...)
+        Defines a function that embeds x to (x, sin(2^k x), cos(2^k x), ...)
         """
         super().__init__()
         self.funcs = [torch.sin, torch.cos]
@@ -109,13 +109,13 @@ class NeRF(nn.Module):
             sigma_only: whether to infer sigma only.
             has_transient: whether to infer the transient component.
 
-        Outputs:
+        Outputs (concatenated):
             if sigma_ony:
                 static_sigma
             elif output_transient:
                 static_rgb, static_sigma, transient_rgb, transient_sigma, transient_beta
             else:
-                static_sigma, static_rgb
+                static_rgb, static_sigma
         """
         if sigma_only:
             input_xyz = x
