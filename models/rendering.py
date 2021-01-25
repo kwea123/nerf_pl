@@ -129,7 +129,7 @@ def render_rays(models,
             out = rearrange(out, '(n1 n2) c -> n1 n2 c', n1=N_rays, n2=N_samples_)
             static_rgbs = out[..., :3] # (N_rays, N_samples_, 3)
             static_sigmas = out[..., 3] # (N_rays, N_samples_)
-            if typ == 'fine' and model.encode_transient:
+            if model.encode_transient:
                 transient_rgbs = out[..., 4:7]
                 transient_sigmas = out[..., 7]
                 transient_betas = out[..., 8]
