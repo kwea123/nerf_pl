@@ -95,7 +95,7 @@ class PhototourismDataset(Dataset):
         """
         self.root_dir = root_dir
         self.split = split
-        assert img_downscale >= 1, 'image can only be downsampled, please set img_scale >= 1!'
+        assert img_downscale >= 1, 'image can only be downsampled, please set img_downscale>=1!'
         self.img_downscale = img_downscale
         self.val_num = max(1, val_num) # at least 1
         self.define_transforms()
@@ -106,17 +106,15 @@ class PhototourismDataset(Dataset):
     def read_meta(self):
         # read all files in the tsv first (split to train and test later)
         self.files = pd.read_csv(glob.glob(os.path.join(self.root_dir, '*.tsv'))[0], sep='\t')
+        self.files = self.files[~self.files['id'].isnull()] # remove data without id
+        self.files.reset_index(inplace=True, drop=True)
 
         # Step 1. load image paths
-        imdata = read_images_binary(os.path.join(self.root_dir, 'dense/sparse/images.bin'))
-        img_path_to_id = {}
-        for v in imdata.values():
-            img_path_to_id[v.name] = v.id
         img_ids = []
         self.image_paths = {} # {id: filename}
-        for filename in list(self.files['filename']):
-            id_ = img_path_to_id[filename]
-            self.image_paths[id_] = filename
+        for i in range(len(self.files)):
+            id_ = int(self.files.loc[i, 'id'])+1
+            self.image_paths[id_] = self.files.loc[i, 'filename']
             img_ids += [id_]
 
         # Step 2: read and rescale camera intrinsics
@@ -133,6 +131,7 @@ class PhototourismDataset(Dataset):
             self.Ks[id_] = K
 
         # Step 3: read c2w poses (of the images in tsv file only) and correct the order
+        imdata = read_images_binary(os.path.join(self.root_dir, 'dense/sparse/images.bin'))
         w2c_mats = []
         bottom = np.array([0, 0, 0, 1.]).reshape(1, 4)
         for id_ in img_ids:
@@ -169,11 +168,9 @@ class PhototourismDataset(Dataset):
             self.fars[k] /= scale_factor
             
         # split the img_ids
-        img_paths_train = list(self.files[self.files['split']=='train']['filename'])
-        self.img_ids_train = [img_path_to_id[path] for path in img_paths_train]
+        self.img_ids_train = list(self.files[self.files['split']=='train']['id'].astype('int')+1)
         self.N_images_train = len(self.img_ids_train)
-        img_paths_test = list(self.files[self.files['split']=='test']['filename'])
-        self.img_ids_test = [img_path_to_id[path] for path in img_paths_test]
+        self.img_ids_test = list(self.files[self.files['split']=='test']['id'].astype('int')+1)
         self.N_images_test = len(self.img_ids_test)
 
         if self.split == 'train': # create buffer of all rays and rgb data
