@@ -156,9 +156,9 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 ![lego_nerf](https://user-images.githubusercontent.com/11364490/105649082-0e4dac00-5ef2-11eb-9d56-946e2ac068c4.gif)
 
-## Brandenburg Gate of Phototourism dataset
+## Phototourism dataset
 
-To be updated.
+ Brandenburg Gate. To be updated.
 
 # :warning: Notes on differences with the paper
 
