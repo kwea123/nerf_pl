@@ -137,7 +137,9 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 ![nerfw_all](https://user-images.githubusercontent.com/11364490/105630746-43c0ae00-5e8e-11eb-856a-e6ce7ac8c16f.gif)
 
-4. Reference: Original NeRF (without `--encode_a` and `--encode_t`) trained on unperturbed data: (PSNR=, paper=32.89)
+4. Reference: Original NeRF (without `--encode_a` and `--encode_t`) trained on unperturbed data: (PSNR=30.93, paper=32.89)
+
+![lego_nerf](https://user-images.githubusercontent.com/11364490/105649082-0e4dac00-5ef2-11eb-9d56-946e2ac068c4.gif)
 
 ## Brandenburg Gate of Phototourism dataset
 
