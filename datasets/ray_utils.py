@@ -2,14 +2,15 @@ import torch
 from kornia import create_meshgrid
 
 
-def get_ray_directions(H, W, focal):
+def get_ray_directions(H, W, K):
     """
     Get ray directions for all pixels in camera coordinate.
     Reference: https://www.scratchapixel.com/lessons/3d-basic-rendering/
                ray-tracing-generating-camera-rays/standard-coordinate-systems
 
     Inputs:
-        H, W, focal: image height, width and focal length
+        H, W: image height and width
+        K: (3, 3) camera intrinsics
 
     Outputs:
         directions: (H, W, 3), the direction of the rays in camera coordinate
@@ -18,8 +19,9 @@ def get_ray_directions(H, W, focal):
     i, j = grid.unbind(-1)
     # the direction here is without +0.5 pixel centering as calibration is not so accurate
     # see https://github.com/bmild/nerf/issues/24
+    fx, fy, cx, cy = K[0, 0], K[1, 1], K[0, 2], K[1, 2]
     directions = \
-        torch.stack([(i-W/2)/focal, -(j-H/2)/focal, -torch.ones_like(i)], -1) # (H, W, 3)
+        torch.stack([(i-cx)/fx, -(j-cy)/fy, -torch.ones_like(i)], -1) # (H, W, 3)
 
     return directions
 

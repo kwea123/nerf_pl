@@ -56,6 +56,10 @@ class BlenderDataset(Dataset):
                                                                      # when W=800
 
         self.focal *= self.img_wh[0]/800 # modify focal length to match size self.img_wh
+        self.K = np.eye(3)
+        self.K[0, 0] = self.K[1, 1] = self.focal
+        self.K[0, 2] = w/2
+        self.K[1, 2] = h/2
 
         # bounds, common for all scenes
         self.near = 2.0
@@ -64,7 +68,7 @@ class BlenderDataset(Dataset):
         
         # ray directions for all pixels, same for all images (same H, W, focal)
         self.directions = \
-            get_ray_directions(h, w, self.focal) # (h, w, 3)
+            get_ray_directions(h, w, self.K) # (h, w, 3)
             
         if self.split == 'train': # create buffer of all rays and rgb data
             self.image_paths = []
