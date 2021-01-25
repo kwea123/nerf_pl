@@ -125,9 +125,14 @@ It will create folder `results/{dataset_name}/{scene_name}` and run inference on
 
 All my experiments are done with image size 200x200, so theoretically PSNR is expected to be lower.
 
-1.  [test_nerfa_color](test_nerfa_color.ipynb) shows that NeRF-A is able to capture image-dependent color variations. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfa_color) **NeRF-A** model under **color perturbation** condition: (PSNR=28.20, paper=30.66)
+1.  [test_nerfa_color](test_nerfa_color.ipynb) shows that NeRF-A is able to capture image-dependent color variations.
 
-![nerfa_color](https://user-images.githubusercontent.com/11364490/105626088-0a2d7a00-5e71-11eb-926d-2f7d18816462.gif)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/11364490/105712423-1db60f00-5f5d-11eb-9135-d9df602fa249.gif">
+  <img src="https://user-images.githubusercontent.com/11364490/105626088-0a2d7a00-5e71-11eb-926d-2f7d18816462.gif">
+  <br>
+  Left: NeRF, PSNR=23.17 (paper=23.38). Right: <a href=https://github.com/kwea123/nerf_pl/releases/tag/nerfa_color>pretrained</a> <b>NeRF-A</b>, PSNR=<b>28.20</b> (paper=30.66).
+</p>
 
 2.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows that NeRF-U is able to decompose the scene into static and transient components when the scene has random occluders.
 
