@@ -143,9 +143,14 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
   Left: NeRF, PSNR=21.94 (paper=19.35). Right: <a href=https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ>pretrained</a> <b>NeRF-U</b>, PSNR=<b>28.60</b> (paper=23.47).
 </p>
 
-3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle color variation and decompose the scene into static and transient components (color variation is not that well learnt though, maybe adding more layers in the static rgb head will help). Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfw_all) **NeRF-W** model under **color perturbation & occluder** condition: (PSNR=24.86, paper=22.19)
+3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle color variation and decompose the scene into static and transient components (color variation is not that well learnt though, maybe adding more layers in the static rgb head will help).
 
-![nerfw_all](https://user-images.githubusercontent.com/11364490/105630746-43c0ae00-5e8e-11eb-856a-e6ce7ac8c16f.gif)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/11364490/105775080-8d51eb80-5fa9-11eb-9e89-7147c6377453.gif">
+  <img src="https://user-images.githubusercontent.com/11364490/105630746-43c0ae00-5e8e-11eb-856a-e6ce7ac8c16f.gif">
+  <br>
+  Left: NeRF, PSNR=18.83 (paper=15.73). Right: <a href=https://github.com/kwea123/nerf_pl/releases/tag/nerfw_all>pretrained</a> <b>NeRF-W</b>, PSNR=<b>24.86</b> (paper=22.19).
+</p>
 
 4. Reference: Original NeRF (without `--encode_a` and `--encode_t`) trained on unperturbed data: (PSNR=30.93, paper=32.89)
 
