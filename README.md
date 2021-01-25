@@ -129,9 +129,14 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 ![nerfa_color](https://user-images.githubusercontent.com/11364490/105626088-0a2d7a00-5e71-11eb-926d-2f7d18816462.gif)
 
-2.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows that NeRF-U is able to decompose the scene into static and transient components when the scene has random occluders. Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ) **NeRF-U** model under **occluder** condition: (PSNR=28.60, paper=23.47)
+2.  [test_nerfu_occ](test_nerfu_occ.ipynb) shows that NeRF-U is able to decompose the scene into static and transient components when the scene has random occluders.
 
-![nerf-u](https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/11364490/105696553-d4f35b80-5f46-11eb-84f6-2ab0c4f73501.gif">
+  <img src="https://user-images.githubusercontent.com/11364490/105578186-a9933400-5dc1-11eb-8865-e276b581d8fd.gif">
+  <br>
+  Left: NeRF, PSNR=21.94. Right: <a href=https://github.com/kwea123/nerf_pl/releases/tag/nerfu_occ>pretrained</a> <b>NeRF-U</b>, PSNR=<b>28.60</b> (paper=23.47).
+</p>
 
 3.  [test_nerfw_all](test_nerfw_all.ipynb) shows that NeRF-W is able to both handle color variation and decompose the scene into static and transient components (color variation is not that well learnt though, maybe adding more layers in the static rgb head will help). Using [pretrained](https://github.com/kwea123/nerf_pl/releases/tag/nerfw_all) **NeRF-W** model under **color perturbation & occluder** condition: (PSNR=24.86, paper=22.19)
 
