@@ -170,7 +170,7 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 ## Brandenburg Gate from Phototourism dataset
 
-To be updated.
+Temporary visualization showing this works: [test_phototourism.ipynb]. Details to be updated.
 
 # :warning: Notes on differences with the paper
 
