@@ -106,7 +106,7 @@ def render_rays(models,
         # Perform model inference to get rgb and raw sigma
         B = xyz_.shape[0]
         out_chunks = []
-        if typ=='coarse' and test_time:
+        if typ=='coarse' and test_time and 'fine' in models:
             for i in range(0, B, chunk):
                 xyz_embedded = embedding_xyz(xyz_[i:i+chunk])
                 out_chunks += [model(xyz_embedded, sigma_only=True)]
@@ -147,7 +147,7 @@ def render_rays(models,
         results[f'weights_{typ}'] = weights
         results[f'opacity_{typ}'] = weights_sum
         results[f'z_vals_{typ}'] = z_vals
-        if test_time and typ == 'coarse':
+        if test_time and typ == 'coarse' and 'fine' in models:
             return
 
         rgb_map = reduce(rearrange(weights, 'n1 n2 -> n1 n2 1')*rgbs, 'n1 n2 c -> n1 c', 'sum')

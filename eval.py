@@ -1,6 +1,4 @@
-import torch
 import os
-import numpy as np
 from collections import defaultdict
 from tqdm import tqdm
 import imageio
@@ -58,8 +56,7 @@ def get_opts():
 @torch.no_grad()
 def batched_inference(models, embeddings,
                       rays, N_samples, N_importance, use_disp,
-                      chunk,
-                      white_back):
+                      chunk):
     """Do batched inference on rays using chunk."""
     B = rays.shape[0]
     results = defaultdict(list)
@@ -99,16 +96,19 @@ if __name__ == "__main__":
     embedding_xyz = Embedding(3, 10)
     embedding_dir = Embedding(3, 4)
     nerf_coarse = NeRF()
-    nerf_fine = NeRF()
     load_ckpt(nerf_coarse, args.ckpt_path, model_name='nerf_coarse')
-    load_ckpt(nerf_fine, args.ckpt_path, model_name='nerf_fine')
     nerf_coarse.cuda().eval()
-    nerf_fine.cuda().eval()
 
-    models = {'coarse': nerf_coarse, 'fine': nerf_fine}
+    models = {'coarse': nerf_coarse}
     embeddings = {'xyz': embedding_xyz, 'dir': embedding_dir}
 
-    imgs, psnrs = [], []
+    if args.N_importance > 0:
+        nerf_fine = NeRF()
+        load_ckpt(nerf_fine, args.ckpt_path, model_name='nerf_fine')
+        nerf_fine.cuda().eval()
+        models['fine'] = nerf_fine
+
+    imgs, depth_imgs, psnrs = [], [], []
     dir_name = f'results/{args.dataset_name}/{args.scene_name}'
     os.makedirs(dir_name, exist_ok=True)
 
@@ -117,14 +117,15 @@ if __name__ == "__main__":
         rays = sample['rays'].cuda()
         results = batched_inference(models, embeddings, rays,
                                     args.N_samples, args.N_importance, args.use_disp,
-                                    args.chunk,
-                                    dataset.white_back)
+                                    args.chunk)
+        typ = 'fine' if 'rgb_fine' in results else 'coarse'
 
-        img_pred = results['rgb_fine'].view(h, w, 3).cpu().numpy()
-        
+        img_pred = results[f'rgb_{typ}'].view(h, w, 3).cpu().numpy()
+
         if args.save_depth:
-            depth_pred = results['depth_fine'].view(h, w).cpu().numpy()
-            depth_pred = np.nan_to_num(depth_pred)
+            depth_pred = results[f'depth_{typ}'].view(h, w).cpu().numpy()
+            depth_pred_ = (depth_pred * 255).astype(np.uint8)
+            depth_imgs += [depth_pred_]
             if args.depth_format == 'pfm':
                 save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
             else:
@@ -139,9 +140,12 @@ if __name__ == "__main__":
             rgbs = sample['rgbs']
             img_gt = rgbs.view(h, w, 3)
             psnrs += [metrics.psnr(img_gt, img_pred).item()]
-        
+
     imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, fps=30)
-    
+
+    if args.save_depth:
+        imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}_depth.gif'), imgs, fps=30)
+
     if psnrs:
         mean_psnr = np.mean(psnrs)
         print(f'Mean PSNR : {mean_psnr:.2f}')
