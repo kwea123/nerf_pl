@@ -99,7 +99,7 @@ Download the scenes you want from [here](https://www.cs.ubc.ca/~kmyi/imw2020/dat
 
 Download the train/test split from the "Additional links" [here](https://nerf-w.github.io/) and put under each scene's folder (the **same level** as the "dense" folder)
 
-(Optional but **highly** recommended) Run `python prepare_phototourism.py --root_dir $ROOT_DIR --img_downscale $SCALE` to prepare the training data and save to disk first, if you want to run multiple experiments or run on multiple gpus. This will **largely** reduce the data preparation step before training.
+(Optional but **highly** recommended) Run `python prepare_phototourism.py --root_dir $ROOT_DIR --img_downscale {an integer, e.g. 2 means half the image sizes}` to prepare the training data and save to disk first, if you want to run multiple experiments or run on multiple gpus. This will **largely** reduce the data preparation step before training.
 
 ### Data visualization (Optional)
 
@@ -107,7 +107,21 @@ Take a look at [phototourism_visualization.ipynb](phototourism_visualization.ipy
 
 ### Training model
 
-To be updated.
+Run (example)
+
+```
+python train.py \
+  --root_dir /home/ubuntu/data/IMC-PT/brandenburg_gate/ --dataset_name phototourism \
+  --img_downscale 8 --use_cache --N_importance 64 --N_samples 64 \
+  --encode_a --encode_t --beta_min 0.03 --N_vocab 1500 \
+  --num_epochs 20 --batch_size 1024 \
+  --optimizer adam --lr 5e-4 --lr_scheduler cosine \
+  --exp_name brandenburg_scale8_nerfw
+```
+
+`--encode_a` and `--encode_t` options are both required to maximize NeRF-W performance.
+
+`--N_vocab` should be set to an integer larger than the number of images (dependent on different scenes). For example, "brandenburg_gate" has in total 1363 images (under `dense/images/`), so any number larger than 1363 works (no need to set to exactly the same number). **Attention!** If you forget to set this number, or it is set smaller than the number of images, the program will yield `RuntimeError: CUDA error: device-side assert triggered` (which comes from `torch.nn.Embedding`).
 
 </details>
 
@@ -117,17 +131,9 @@ Download the pretrained models and training logs in [release](https://github.com
 # :mag_right: Testing
 
 Use [eval.py](eval.py) to create the whole sequence of moving views.
-E.g.
-```
-python eval.py \
-   --root_dir $BLENDER \
-   --dataset_name blender --scene_name lego --split test \
-   --img_wh 400 400 --N_importance 64 --ckpt_path $CKPT_PATH
-```
-
 It will create folder `results/{dataset_name}/{scene_name}` and run inference on all test data, finally create a gif out of them.
 
-## Lego examples
+## Lego from Blender
 
 All my experiments are done with image size 200x200, so theoretically PSNR is expected to be lower.
 
@@ -162,9 +168,9 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 ![lego_nerf](https://user-images.githubusercontent.com/11364490/105649082-0e4dac00-5ef2-11eb-9d56-946e2ac068c4.gif)
 
-## Phototourism dataset
+## Brandenburg Gate from Phototourism dataset
 
- Brandenburg Gate. To be updated.
+To be updated.
 
 # :warning: Notes on differences with the paper
 
