@@ -3,8 +3,7 @@ import argparse
 def get_opts():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--root_dir', type=str,
-                        default='/home/ubuntu/data/nerf_example_data/nerf_synthetic/lego',
+    parser.add_argument('--root_dir', type=str, required=True,
                         help='root directory of dataset')
     parser.add_argument('--dataset_name', type=str, default='blender',
                         choices=['blender', 'phototourism'],
@@ -19,6 +18,8 @@ def get_opts():
     # for phototourism
     parser.add_argument('--img_downscale', type=int, default=1,
                         help='how much to downscale the images for phototourism dataset')
+    parser.add_argument('--use_cache', default=False, action="store_true",
+                        help='whether to use ray cache (make sure img_downscale is the same)')
 
     # original NeRF parameters
     parser.add_argument('--N_emb_xyz', type=int, default=10,
