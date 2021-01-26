@@ -164,9 +164,13 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
   Left: NeRF, PSNR=18.83 (paper=15.73). Right: <a href=https://github.com/kwea123/nerf_pl/releases/tag/nerfw_all>pretrained</a> <b>NeRF-W</b>, PSNR=<b>24.86</b> (paper=22.19).
 </p>
 
-4. Reference: Original NeRF (without `--encode_a` and `--encode_t`) trained on unperturbed data: (PSNR=30.93, paper=32.89)
+4. Reference: Original NeRF (without `--encode_a` and `--encode_t`) trained on unperturbed data.
 
-![lego_nerf](https://user-images.githubusercontent.com/11364490/105649082-0e4dac00-5ef2-11eb-9d56-946e2ac068c4.gif)
+<p align="center">
+   <img src="https://user-images.githubusercontent.com/11364490/105649082-0e4dac00-5ef2-11eb-9d56-946e2ac068c4.gif">
+   <br>
+   PSNR=30.93 (paper=32.89)
+</p>
 
 ## Brandenburg Gate from Phototourism dataset
 
