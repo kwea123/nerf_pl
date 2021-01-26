@@ -39,6 +39,7 @@ class PhototourismDataset(Dataset):
     def read_meta(self):
         # read all files in the tsv first (split to train and test later)
         tsv = glob.glob(os.path.join(self.root_dir, '*.tsv'))[0]
+        self.scene_name = os.path.basename(tsv)[:-4]
         self.files = pd.read_csv(tsv, sep='\t')
         self.files = self.files[~self.files['id'].isnull()] # remove data without id
         self.files.reset_index(inplace=True, drop=True)
@@ -73,10 +74,12 @@ class PhototourismDataset(Dataset):
             for id_ in self.img_ids:
                 K = np.zeros((3, 3), dtype=np.float32)
                 cam = camdata[id_]
-                K[0, 0] = cam.params[0]/self.img_downscale # fx
-                K[1, 1] = cam.params[1]/self.img_downscale # fy
-                K[0, 2] = cam.params[2]/self.img_downscale # cx
-                K[1, 2] = cam.params[3]/self.img_downscale # cy
+                img_w, img_h = int(cam.params[2]*2), int(cam.params[3]*2)
+                img_w_, img_h_ = img_w//self.img_downscale, img_h//self.img_downscale
+                K[0, 0] = cam.params[0]*img_w_/img_w # fx
+                K[1, 1] = cam.params[1]*img_h_/img_h # fy
+                K[0, 2] = cam.params[2]*img_w_/img_w # cx
+                K[1, 2] = cam.params[3]*img_h_/img_h # cy
                 K[2, 2] = 1
                 self.Ks[id_] = K
 
@@ -107,13 +110,18 @@ class PhototourismDataset(Dataset):
             with open(os.path.join(self.root_dir, f'cache/fars.pkl'), 'rb') as f:
                 self.fars = pickle.load(f)
         else:
+            # define how much is the far plane for each scene (default includes 99.5% of the points)
+            far_percentage = {'brandenburg': 98,
+                              'sacre_coeur': 99.5,
+                              'trevi_fountain': 99.5}
             xyz_world_h = np.concatenate([self.xyz_world, np.ones((len(self.xyz_world), 1))], -1)
             self.nears, self.fars = {}, {} # {id_: distance}
             for i, id_ in enumerate(self.img_ids):
                 xyz_cam_i = (xyz_world_h @ w2c_mats[i].T)[:, :3] # xyz in the ith cam coordinate
                 xyz_cam_i = xyz_cam_i[xyz_cam_i[:, 2]>0] # filter out points that lie behind the cam
                 self.nears[id_] = np.percentile(xyz_cam_i[:, 2], 0.1)
-                self.fars[id_] = np.percentile(xyz_cam_i[:, 2], 99.5)
+                self.fars[id_] = np.percentile(xyz_cam_i[:, 2],
+                                               far_percentage.get(self.scene_name, 99.5))
 
         max_far = np.fromiter(self.fars.values(), np.float32).max()
         scale_factor = max_far/5 # so that the max far is scaled to 5
@@ -125,7 +133,7 @@ class PhototourismDataset(Dataset):
             self.fars[k] /= scale_factor
         self.xyz_world /= scale_factor
             
-        # Step 5. split the img_ids
+        # Step 5. split the img_ids (the number of images is verfied to match that in the paper)
         self.img_ids_train = [id_ for i, id_ in enumerate(self.img_ids) 
                                     if self.files.loc[i, 'split']=='train']
         self.img_ids_test = [id_ for i, id_ in enumerate(self.img_ids)
@@ -171,8 +179,8 @@ class PhototourismDataset(Dataset):
                 self.all_rays = torch.cat(self.all_rays, 0) # ((N_images-1)*h*w, 8)
                 self.all_rgbs = torch.cat(self.all_rgbs, 0) # ((N_images-1)*h*w, 3)
         
-        elif self.split == 'val': # use the first image as val image (also in train)
-            self.val_id = self.img_ids[0]
+        elif self.split in ['val', 'test_train']: # use the first image as val image (also in train)
+            self.val_id = self.img_ids_train[0]
 
         else: # for testing, create a parametric rendering path
             raise NotImplementedError
@@ -191,7 +199,7 @@ class PhototourismDataset(Dataset):
 
     def __getitem__(self, idx):
         if self.split == 'train': # use data in the buffers
-            sample = {'rays': self.all_rays[idx],
+            sample = {'rays': self.all_rays[idx, :8],
                       'ts': self.all_rays[idx, 8].long(),
                       'rgbs': self.all_rgbs[idx]}
 

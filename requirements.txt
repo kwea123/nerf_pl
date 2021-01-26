@@ -11,6 +11,8 @@ imageio==2.9.0
 imageio-ffmpeg==0.4.2
 pandas==1.1.5
 torch_optimizer
+
+# for phototourism visualization
 plotly==4.14.3
 
 # for mesh

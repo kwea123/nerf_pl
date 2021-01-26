@@ -99,6 +99,12 @@ Download the scenes you want from [here](https://www.cs.ubc.ca/~kmyi/imw2020/dat
 
 Download the train/test split from the "Additional links" [here](https://nerf-w.github.io/) and put under each scene's folder (the **same level** as the "dense" folder)
 
+(Optional but **highly** recommended) Run `python prepare_phototourism.py --root_dir $ROOT_DIR --img_downscale $SCALE` to prepare the training data and save to disk first, if you want to run multiple experiments or run on multiple gpus. This will **largely** reduce the data preparation step before training.
+
+### Data visualization (Optional)
+
+Take a look at [phototourism_visualization.ipynb](phototourism_visualization.ipynb), a quick visualization of the data: scene geometry, camera poses, rays and bounds, to assure you that my data convertion works correctly.
+
 ### Training model
 
 To be updated.
