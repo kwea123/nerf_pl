@@ -110,10 +110,6 @@ class PhototourismDataset(Dataset):
         else:
             pts3d = read_points3d_binary(os.path.join(self.root_dir, 'dense/sparse/points3D.bin'))
             self.xyz_world = np.array([pts3d[p_id].xyz for p_id in pts3d])
-            # define how much is the far plane for each scene (default includes 99.5% of the points)
-            far_percentage = {'brandenburg': 98,
-                              'sacre_coeur': 99.5,
-                              'trevi_fountain': 99.5}
             xyz_world_h = np.concatenate([self.xyz_world, np.ones((len(self.xyz_world), 1))], -1)
             # Compute near and far bounds for each image individually
             self.nears, self.fars = {}, {} # {id_: distance}
@@ -121,8 +117,7 @@ class PhototourismDataset(Dataset):
                 xyz_cam_i = (xyz_world_h @ w2c_mats[i].T)[:, :3] # xyz in the ith cam coordinate
                 xyz_cam_i = xyz_cam_i[xyz_cam_i[:, 2]>0] # filter out points that lie behind the cam
                 self.nears[id_] = np.percentile(xyz_cam_i[:, 2], 0.1)
-                self.fars[id_] = np.percentile(xyz_cam_i[:, 2],
-                                               far_percentage.get(self.scene_name, 99.5))
+                self.fars[id_] = np.percentile(xyz_cam_i[:, 2], 99.9)
 
             max_far = np.fromiter(self.fars.values(), np.float32).max()
             scale_factor = max_far/5 # so that the max far is scaled to 5
