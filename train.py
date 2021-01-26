@@ -44,10 +44,14 @@ class NeRFSystem(LightningModule):
             self.embedding_t = torch.nn.Embedding(hparams.N_vocab, hparams.N_tau)
             self.embeddings['t'] = self.embedding_t
 
-        self.nerf_coarse = NeRF('coarse')
+        self.nerf_coarse = NeRF('coarse',
+                                in_channels_xyz=6*hparams.N_emb_xyz+3,
+                                in_channels_dir=6*hparams.N_emb_dir+3)
         self.models = {'coarse': self.nerf_coarse}
         if hparams.N_importance > 0:
             self.nerf_fine = NeRF('fine',
+                                  in_channels_xyz=6*hparams.N_emb_xyz+3,
+                                  in_channels_dir=6*hparams.N_emb_dir+3,
                                   encode_appearance=hparams.encode_a,
                                   in_channels_a=hparams.N_a,
                                   encode_transient=hparams.encode_t,

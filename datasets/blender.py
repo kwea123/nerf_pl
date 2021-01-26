@@ -71,17 +71,13 @@ class BlenderDataset(Dataset):
             get_ray_directions(h, w, self.K) # (h, w, 3)
             
         if self.split == 'train': # create buffer of all rays and rgb data
-            self.image_paths = []
-            self.poses = []
             self.all_rays = []
             self.all_rgbs = []
             for t, frame in enumerate(self.meta['frames']):
                 pose = np.array(frame['transform_matrix'])[:3, :4]
-                self.poses += [pose]
                 c2w = torch.FloatTensor(pose)
 
                 image_path = os.path.join(self.root_dir, f"{frame['file_path']}.png")
-                self.image_paths += [image_path]
                 img = Image.open(image_path)
                 if t != 0: # perturb everything except the first image.
                            # cf. Section D in the supplementary material

@@ -95,26 +95,27 @@ class PhototourismDataset(Dataset):
                 t = im.tvec.reshape(3, 1)
                 w2c_mats += [np.concatenate([np.concatenate([R, t], 1), bottom], 0)]
             w2c_mats = np.stack(w2c_mats, 0) # (N_images, 4, 4)
-            poses = np.linalg.inv(w2c_mats)[:, :3] # (N_images, 3, 4)
-            # Original poses has rotation in form "down right front", change to "right up back"
-            self.poses = np.concatenate([poses[..., 1:2], -poses[..., :1],
-                                        -poses[..., 2:3], poses[..., 3:4]], -1)
+            self.poses = np.linalg.inv(w2c_mats)[:, :3] # (N_images, 3, 4)
+            # Original poses has rotation in form "right down front", change to "right up back"
+            self.poses[..., 1:3] *= -1
+            # self.poses = np.concatenate([poses[..., 0:1], -poses[..., 1:2],
+            #                             -poses[..., 2:3], poses[..., 3:4]], -1)
 
         # Step 4: correct scale
-        pts3d = read_points3d_binary(os.path.join(self.root_dir, 'dense/sparse/points3D.bin'))
-        self.xyz_world = np.array([pts3d[p_id].xyz for p_id in pts3d])
-        # Compute near and far bounds for each image individually
         if self.use_cache:
             with open(os.path.join(self.root_dir, f'cache/nears.pkl'), 'rb') as f:
                 self.nears = pickle.load(f)
             with open(os.path.join(self.root_dir, f'cache/fars.pkl'), 'rb') as f:
                 self.fars = pickle.load(f)
         else:
+            pts3d = read_points3d_binary(os.path.join(self.root_dir, 'dense/sparse/points3D.bin'))
+            self.xyz_world = np.array([pts3d[p_id].xyz for p_id in pts3d])
             # define how much is the far plane for each scene (default includes 99.5% of the points)
             far_percentage = {'brandenburg': 98,
                               'sacre_coeur': 99.5,
                               'trevi_fountain': 99.5}
             xyz_world_h = np.concatenate([self.xyz_world, np.ones((len(self.xyz_world), 1))], -1)
+            # Compute near and far bounds for each image individually
             self.nears, self.fars = {}, {} # {id_: distance}
             for i, id_ in enumerate(self.img_ids):
                 xyz_cam_i = (xyz_world_h @ w2c_mats[i].T)[:, :3] # xyz in the ith cam coordinate
@@ -123,15 +124,15 @@ class PhototourismDataset(Dataset):
                 self.fars[id_] = np.percentile(xyz_cam_i[:, 2],
                                                far_percentage.get(self.scene_name, 99.5))
 
-        max_far = np.fromiter(self.fars.values(), np.float32).max()
-        scale_factor = max_far/5 # so that the max far is scaled to 5
-        self.poses[..., 3] /= scale_factor
+            max_far = np.fromiter(self.fars.values(), np.float32).max()
+            scale_factor = max_far/5 # so that the max far is scaled to 5
+            self.poses[..., 3] /= scale_factor
+            for k in self.nears:
+                self.nears[k] /= scale_factor
+            for k in self.fars:
+                self.fars[k] /= scale_factor
+            self.xyz_world /= scale_factor
         self.poses_dict = {id_: self.poses[i] for i, id_ in enumerate(self.img_ids)}
-        for k, v in self.nears.items():
-            self.nears[k] /= scale_factor
-        for k, v in self.fars.items():
-            self.fars[k] /= scale_factor
-        self.xyz_world /= scale_factor
             
         # Step 5. split the img_ids (the number of images is verfied to match that in the paper)
         self.img_ids_train = [id_ for i, id_ in enumerate(self.img_ids) 
