@@ -42,4 +42,4 @@ if __name__ == '__main__':
             dataset.all_rays.numpy())
     np.save(os.path.join(args.root_dir, f'cache/rgbs{args.img_downscale}.npy'),
             dataset.all_rgbs.numpy())
-    print(f"Data cache saved to {os.path.join(args.root_dir, 'cache')}!")
+    print(f"Data cache saved to {os.path.join(args.root_dir, 'cache')} !")
