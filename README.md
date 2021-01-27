@@ -1,6 +1,6 @@
 # nerf_pl
 
-### Update: [NeRF-W](https://nerf-w.github.io/) implementation is added to [nerfw](https://github.com/kwea123/nerf_pl/tree/nerfw) branch!
+### Update: [NeRF-W](https://nerf-w.github.io/) (NeRF in the Wild) implementation is added to [nerfw](https://github.com/kwea123/nerf_pl/tree/nerfw) branch!
 
 ### Update: The lastest code (using the latest libraries) will be updated to [dev](https://github.com/kwea123/nerf_pl/tree/dev) branch. The master branch remains to support the colab files. If you don't use colab, it is recommended to switch to dev branch.
 
