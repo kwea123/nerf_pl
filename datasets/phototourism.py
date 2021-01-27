@@ -85,7 +85,7 @@ class PhototourismDataset(Dataset):
 
         # Step 3: read c2w poses (of the images in tsv file only) and correct the order
         if self.use_cache:
-            self.poses = np.load(os.path.join(self.root_dir, 'poses.npy'))
+            self.poses = np.load(os.path.join(self.root_dir, 'cache/poses.npy'))
         else:
             w2c_mats = []
             bottom = np.array([0, 0, 0, 1.]).reshape(1, 4)
@@ -103,6 +103,7 @@ class PhototourismDataset(Dataset):
 
         # Step 4: correct scale
         if self.use_cache:
+            self.xyz_world = np.load(os.path.join(self.root_dir, 'cache/xyz_world.npy'))
             with open(os.path.join(self.root_dir, f'cache/nears.pkl'), 'rb') as f:
                 self.nears = pickle.load(f)
             with open(os.path.join(self.root_dir, f'cache/fars.pkl'), 'rb') as f:

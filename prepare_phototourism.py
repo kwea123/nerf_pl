@@ -29,8 +29,11 @@ if __name__ == '__main__':
     # save Ks
     with open(os.path.join(args.root_dir, f'cache/Ks{args.img_downscale}.pkl'), 'wb') as f:
         pickle.dump(dataset.Ks, f, pickle.HIGHEST_PROTOCOL)
+    # save scene points
+    np.save(os.path.join(args.root_dir, 'cache/xyz_world.npy'),
+            dataset.xyz_world)
     # save poses
-    np.save(os.path.join(args.root_dir, 'poses.npy'),
+    np.save(os.path.join(args.root_dir, 'cache/poses.npy'),
             dataset.poses)
     # save near and far bounds
     with open(os.path.join(args.root_dir, f'cache/nears.pkl'), 'wb') as f:
