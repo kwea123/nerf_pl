@@ -179,8 +179,11 @@ def render_rays(models,
             # Add beta_min AFTER the beta composition. Different from eq 10~12 in the paper.
             # See "Notes on differences with the paper" in README.
             results['beta'] += model.beta_min
-                               
-            results[f'rgb_{typ}'] = static_rgb_map + transient_rgb_map
+            
+            # the rgb maps here are when both fields exist
+            results['_rgb_fine_static'] = static_rgb_map
+            results['_rgb_fine_transient'] = transient_rgb_map
+            results['rgb_fine'] = static_rgb_map + transient_rgb_map
 
             if test_time:
                 # Compute also static and transient rgbs when only one field exists.
@@ -263,9 +266,9 @@ def render_rays(models,
 
         model = models['fine']
         if model.encode_appearance:
-            a_embedded = embeddings['a'](ts)
+            a_embedded = kwargs.get('a_embedded', embeddings['a'](ts))
         if model.encode_transient:
-            t_embedded = embeddings['t'](ts)
+            t_embedded = kwargs.get('t_embedded', embeddings['t'](ts))
         inference(results, model, xyz_fine, z_vals, test_time, **kwargs)
 
     return results
