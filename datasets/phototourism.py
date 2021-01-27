@@ -29,7 +29,7 @@ class PhototourismDataset(Dataset):
         self.split = split
         assert img_downscale >= 1, 'image can only be downsampled, please set img_downscale>=1!'
         self.img_downscale = img_downscale
-        if split != 'train': # image downscale=1 will cause OOM in val mode
+        if split == 'val': # image downscale=1 will cause OOM in val mode
             self.img_downscale = max(2, self.img_downscale)
         self.val_num = max(1, val_num) # at least 1
         self.use_cache = use_cache
