@@ -174,7 +174,7 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 ## Brandenburg Gate from Phototourism dataset
 
-Temporary visualization showing this works: [test_phototourism.ipynb](test_phototourism.ipynb). Details to be updated.
+See [test_phototourism.ipynb](test_phototourism.ipynb) for some paper results' reproduction.
 
 # :warning: Notes on differences with the paper
 
@@ -189,3 +189,6 @@ Temporary visualization showing this works: [test_phototourism.ipynb](test_photo
     *  I add 3 to `beta_loss` (equation 13) to make it positive empirically.
     *  When there is no transient head (NeRF-A), the loss is the average MSE error of coarse and fine models (not specified in the paper).
     *  Other hyperparameters differ quite a lot from the paper (although many are not specified, they say that they use grid search to find the best). Please check each pretrained models in the release.
+
+*  Phototourism evaluation
+    *  To evaluate the results on the testing set, they train on the left half of the image and evaluate on the right half (to train the embedding of the test images). I didn't perform this additional training, I only evaluated on the training images. It should be easy to implement this.
