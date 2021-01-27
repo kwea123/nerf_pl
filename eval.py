@@ -1,4 +1,6 @@
 import os
+import cv2
+
 from collections import defaultdict
 from tqdm import tqdm
 import imageio
@@ -14,6 +16,7 @@ from datasets import dataset_dict
 from datasets.depth_utils import *
 
 torch.backends.cudnn.benchmark = True
+
 
 def get_opts():
     parser = ArgumentParser()
@@ -108,7 +111,7 @@ if __name__ == "__main__":
         nerf_fine.cuda().eval()
         models['fine'] = nerf_fine
 
-    imgs, depth_imgs, psnrs = [], [], []
+    imgs, depth_maps, psnrs = [], [], []
     dir_name = f'results/{args.dataset_name}/{args.scene_name}'
     os.makedirs(dir_name, exist_ok=True)
 
@@ -124,15 +127,14 @@ if __name__ == "__main__":
 
         if args.save_depth:
             depth_pred = results[f'depth_{typ}'].view(h, w).cpu().numpy()
-            depth_pred_ = (depth_pred * 255).astype(np.uint8)
-            depth_imgs += [depth_pred_]
+            depth_maps += [depth_pred]
             if args.depth_format == 'pfm':
                 save_pfm(os.path.join(dir_name, f'depth_{i:03d}.pfm'), depth_pred)
             else:
                 with open(f'depth_{i:03d}', 'wb') as f:
                     f.write(depth_pred.tobytes())
 
-        img_pred_ = (img_pred*255).astype(np.uint8)
+        img_pred_ = (img_pred * 255).astype(np.uint8)
         imgs += [img_pred_]
         imageio.imwrite(os.path.join(dir_name, f'{i:03d}.png'), img_pred_)
 
@@ -144,7 +146,11 @@ if __name__ == "__main__":
     imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, fps=30)
 
     if args.save_depth:
-        imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}_depth.gif'), imgs, fps=30)
+        min_depth = np.min(depth_maps)
+        max_depth = np.max(depth_maps)
+        depth_imgs = (depth_maps - np.min(depth_maps)) / (max(np.max(depth_maps) - np.min(depth_maps), 1e-8))
+        depth_imgs_ = [cv2.applyColorMap((img * 255).astype(np.uint8), cv2.COLORMAP_JET) for img in depth_imgs]
+        imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}_depth.gif'), depth_imgs_, fps=30)
 
     if psnrs:
         mean_psnr = np.mean(psnrs)
