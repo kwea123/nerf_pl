@@ -29,6 +29,8 @@ class PhototourismDataset(Dataset):
         self.split = split
         assert img_downscale >= 1, 'image can only be downsampled, please set img_downscale>=1!'
         self.img_downscale = img_downscale
+        if split != 'train': # image downscale=1 will cause OOM in val mode
+            self.img_downscale = max(2, self.img_downscale)
         self.val_num = max(1, val_num) # at least 1
         self.use_cache = use_cache
         self.define_transforms()
@@ -98,8 +100,6 @@ class PhototourismDataset(Dataset):
             self.poses = np.linalg.inv(w2c_mats)[:, :3] # (N_images, 3, 4)
             # Original poses has rotation in form "right down front", change to "right up back"
             self.poses[..., 1:3] *= -1
-            # self.poses = np.concatenate([poses[..., 0:1], -poses[..., 1:2],
-            #                             -poses[..., 2:3], poses[..., 3:4]], -1)
 
         # Step 4: correct scale
         if self.use_cache:
