@@ -103,7 +103,7 @@ Download the train/test split from the "Additional links" [here](https://nerf-w.
 
 ### Data visualization (Optional)
 
-Take a look at [phototourism_visualization.ipynb](phototourism_visualization.ipynb), a quick visualization of the data: scene geometry, camera poses, rays and bounds, to assure you that my data convertion works correctly.
+Take a look at [phototourism_visualization.ipynb](https://nbviewer.jupyter.org/github/kwea123/nerf_pl/blob/nerfw/phototourism_visualization.ipynb), a quick visualization of the data: scene geometry, camera poses, rays and bounds, to assure you that my data convertion works correctly.
 
 ### Training model
 
@@ -174,7 +174,7 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 ## Brandenburg Gate from Phototourism dataset
 
-See [test_phototourism.ipynb](test_phototourism.ipynb) for some paper results' reproduction.
+See [test_phototourism.ipynb](https://nbviewer.jupyter.org/github/kwea123/nerf_pl/blob/nerfw/test_phototourism.ipynb) for some paper results' reproduction.
 
 # :warning: Notes on differences with the paper
 
