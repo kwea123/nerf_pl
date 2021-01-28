@@ -35,9 +35,11 @@ def get_opts():
                         help='number of gpus')
 
     parser.add_argument('--ckpt_path', type=str, default=None,
-                        help='pretrained checkpoint path to load')
+                        help='pretrained checkpoint to load (including optimizers, etc)')
     parser.add_argument('--prefixes_to_ignore', nargs='+', type=str, default=['loss'],
                         help='the prefixes to ignore in the checkpoint state dict')
+    parser.add_argument('--weight_path', type=str, default=None,
+                        help='pretrained model weight to load (do not load optimizers, etc)')
 
     parser.add_argument('--optimizer', type=str, default='adam',
                         help='optimizer type',
