@@ -111,7 +111,7 @@ def render_rays(models,
             # create other necessary inputs
             if model.encode_appearance:
                 a_embedded_ = repeat(a_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
-            if model.encode_transient:
+            if output_transient:
                 t_embedded_ = repeat(t_embedded, 'n1 c -> (n1 n2) c', n2=N_samples_)
             for i in range(0, B, chunk):
                 # inputs for original NeRF
@@ -119,17 +119,15 @@ def render_rays(models,
                 # additional inputs for NeRF-W
                 if model.encode_appearance:
                     inputs += [a_embedded_[i:i+chunk]]
-                if model.encode_transient:
+                if output_transient:
                     inputs += [t_embedded_[i:i+chunk]]
-                # TODO: add output_transient option in the kwargs
-                out_chunks += [model(torch.cat(inputs, 1),
-                                     output_transient=model.encode_transient)]
+                out_chunks += [model(torch.cat(inputs, 1), output_transient=output_transient)]
 
             out = torch.cat(out_chunks, 0)
             out = rearrange(out, '(n1 n2) c -> n1 n2 c', n1=N_rays, n2=N_samples_)
             static_rgbs = out[..., :3] # (N_rays, N_samples_, 3)
             static_sigmas = out[..., 3] # (N_rays, N_samples_)
-            if model.encode_transient:
+            if output_transient:
                 transient_rgbs = out[..., 4:7]
                 transient_sigmas = out[..., 7]
                 transient_betas = out[..., 8]
@@ -139,7 +137,7 @@ def render_rays(models,
         delta_inf = 1e2 * torch.ones_like(deltas[:, :1]) # (N_rays, 1) the last delta is infinity
         deltas = torch.cat([deltas, delta_inf], -1)  # (N_rays, N_samples_)
 
-        if model.encode_transient:
+        if output_transient:
             static_alphas = 1-torch.exp(-deltas*static_sigmas)
             transient_alphas = 1-torch.exp(-deltas*transient_sigmas)
             alphas = 1-torch.exp(-deltas*(static_sigmas+transient_sigmas))
@@ -151,7 +149,7 @@ def render_rays(models,
             torch.cat([torch.ones_like(alphas[:, :1]), 1-alphas], -1) # [1, 1-a1, 1-a2, ...]
         transmittance = torch.cumprod(alphas_shifted[:, :-1], -1) # [1, 1-a1, (1-a1)(1-a2), ...]
 
-        if model.encode_transient:
+        if output_transient:
             static_weights = static_alphas * transmittance
             transient_weights = transient_alphas * transmittance
 
@@ -160,13 +158,13 @@ def render_rays(models,
 
         results[f'weights_{typ}'] = weights
         results[f'opacity_{typ}'] = weights_sum
-        if model.encode_transient:
+        if output_transient:
             results['transient_sigmas'] = transient_sigmas
         if test_time and typ == 'coarse':
             return
 
 
-        if model.encode_transient:
+        if output_transient:
             static_rgb_map = reduce(rearrange(static_weights, 'n1 n2 -> n1 n2 1')*static_rgbs,
                                     'n1 n2 c -> n1 c', 'sum')
             if white_back:
@@ -254,6 +252,7 @@ def render_rays(models,
     xyz_coarse = rays_o + rays_d * rearrange(z_vals, 'n1 n2 -> n1 n2 1')
 
     results = {}
+    output_transient = False
     inference(results, models['coarse'], xyz_coarse, z_vals, test_time, **kwargs)
 
     if N_importance > 0: # sample points for fine model
@@ -267,7 +266,8 @@ def render_rays(models,
         model = models['fine']
         if model.encode_appearance:
             a_embedded = kwargs.get('a_embedded', embeddings['a'](ts))
-        if model.encode_transient:
+        output_transient = kwargs.get('output_transient', True) and model.encode_transient
+        if output_transient:
             t_embedded = kwargs.get('t_embedded', embeddings['t'](ts))
         inference(results, model, xyz_fine, z_vals, test_time, **kwargs)
 
