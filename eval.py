@@ -143,7 +143,7 @@ if __name__ == "__main__":
     kwargs = {}
     if args.dataset_name == 'phototourism' and args.split == 'test':
         # select appearance embedding, hard-coded for each scene
-        if scene == 'brandenburg_gate':
+        if scene == 'brandenburg_gate': # 85572957_6053497857.jpg
             a_embedded = embedding_a.weight[1123]
         else:
             raise NotImplementedError
@@ -201,8 +201,10 @@ if __name__ == "__main__":
             img_gt = rgbs.view(h, w, 3)
             psnrs += [metrics.psnr(img_gt, img_pred).item()]
         
-    imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.{args.video_format}'),
-                    imgs, fps=30)
+    if args.dataset_name == 'blender' or \
+      (args.dataset_name == 'phototourism' and args.split == 'test'):
+        imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.{args.video_format}'),
+                        imgs, fps=30)
     
     if psnrs:
         mean_psnr = np.mean(psnrs)
