@@ -88,7 +88,7 @@ def batched_inference(models, embeddings,
                         0,
                         N_importance,
                         chunk,
-                        dataset.white_back,
+                        white_back,
                         test_time=True)
 
         for k, v in rendered_ray_chunks.items():
