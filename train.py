@@ -39,8 +39,7 @@ class NeRFSystem(LightningModule):
 
         self.nerf_coarse = NeRF()
         self.models = {'coarse': self.nerf_coarse}
-        if hparams.weight_path:
-            load_ckpt(self.nerf_coarse, hparams.weight_path, 'nerf_coarse')
+        load_ckpt(self.nerf_coarse, hparams.weight_path, 'nerf_coarse')
 
         if hparams.N_importance > 0:
             self.nerf_fine = NeRF()
