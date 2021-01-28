@@ -176,6 +176,8 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 See [test_phototourism.ipynb](https://nbviewer.jupyter.org/github/kwea123/nerf_pl/blob/nerfw/test_phototourism.ipynb) for some paper results' reproduction.
 
+(Under development) Use [eval.py](eval.py) to create a flythrough video like what's shown on the authors' project page.
+
 # :warning: Notes on differences with the paper
 
 *  Network structure ([nerf.py](models/nerf.py)):
