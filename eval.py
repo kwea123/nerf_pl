@@ -23,7 +23,7 @@ def get_opts():
                         default='/home/ubuntu/data/nerf_example_data/nerf_synthetic/lego',
                         help='root directory of dataset')
     parser.add_argument('--dataset_name', type=str, default='blender',
-                        choices=['blender'],
+                        choices=['blender', 'phototourism'],
                         help='which dataset to validate')
     parser.add_argument('--scene_name', type=str, default='test',
                         help='scene name, used as output folder name')
@@ -31,6 +31,11 @@ def get_opts():
                         choices=['val', 'test', 'test_train'])
     parser.add_argument('--img_wh', nargs="+", type=int, default=[800, 800],
                         help='resolution (img_w, img_h) of the image')
+    # for phototourism
+    parser.add_argument('--img_downscale', type=int, default=1,
+                        help='how much to downscale the images for phototourism dataset')
+    parser.add_argument('--use_cache', default=False, action="store_true",
+                        help='whether to use ray cache (make sure img_downscale is the same)')
 
     # original NeRF parameters
     parser.add_argument('--N_emb_xyz', type=int, default=10,
@@ -65,6 +70,10 @@ def get_opts():
     parser.add_argument('--ckpt_path', type=str, required=True,
                         help='pretrained checkpoint path to load')
 
+    parser.add_argument('--video_format', type=str, default='gif',
+                        choices=['gif', 'mp4'],
+                        help='video format, gif or mp4')
+
     return parser.parse_args()
 
 
@@ -72,16 +81,22 @@ def get_opts():
 def batched_inference(models, embeddings,
                       rays, ts, N_samples, N_importance, use_disp,
                       chunk,
-                      white_back):
+                      white_back,
+                      **kwargs):
     """Do batched inference on rays using chunk."""
     B = rays.shape[0]
     results = defaultdict(list)
     for i in range(0, B, chunk):
+        kwargs_ = {}
+        if 'output_transient' in kwargs:
+            kwargs_['output_transient'] = kwargs['output_transient']
+        if 'a_embedded' in kwargs:
+            kwargs_['a_embedded'] = kwargs['a_embedded'][i:i+chunk]
         rendered_ray_chunks = \
             render_rays(models,
                         embeddings,
                         rays[i:i+chunk],
-                        ts[i:i+chunk],
+                        ts[i:i+chunk] if ts is not None else None,
                         N_samples,
                         use_disp,
                         0,
@@ -89,10 +104,11 @@ def batched_inference(models, embeddings,
                         N_importance,
                         chunk,
                         white_back,
-                        test_time=True)
+                        test_time=True,
+                        **kwargs_)
 
         for k, v in rendered_ray_chunks.items():
-            results[k] += [v]
+            results[k] += [v.cpu()]
 
     for k, v in results.items():
         results[k] = torch.cat(v, 0)
@@ -101,12 +117,16 @@ def batched_inference(models, embeddings,
 
 if __name__ == "__main__":
     args = get_opts()
-    w, h = args.img_wh
 
     kwargs = {'root_dir': args.root_dir,
-              'split': args.split,
-              'img_wh': tuple(args.img_wh)}
+              'split': args.split}
+    if args.dataset_name == 'blender':
+        kwargs['img_wh'] = tuple(args.img_wh)
+    else:
+        kwargs['img_downscale'] = args.img_downscale
+        kwargs['use_cache'] = args.use_cache
     dataset = dataset_dict[args.dataset_name](**kwargs)
+    scene = os.path.basename(args.root_dir.strip('/'))
 
     embedding_xyz = PosEmbedding(args.N_emb_xyz-1, args.N_emb_xyz)
     embedding_dir = PosEmbedding(args.N_emb_dir-1, args.N_emb_dir)
@@ -120,13 +140,28 @@ if __name__ == "__main__":
         load_ckpt(embedding_t, args.ckpt_path, model_name='embedding_t')
         embeddings['t'] = embedding_t
 
-    nerf_coarse = NeRF('coarse').cuda()
+    kwargs = {}
+    if args.dataset_name == 'phototourism' and args.split == 'test':
+        # select appearance embedding, hard-coded for each scene
+        if scene == 'brandenburg_gate':
+            a_embedded = embedding_a.weight[1123]
+        else:
+            raise NotImplementedError
+        kwargs['a_embedded'] = a_embedded
+        kwargs['output_transient'] = False
+
+    nerf_coarse = NeRF('coarse',
+                        in_channels_xyz=6*args.N_emb_xyz+3,
+                        in_channels_dir=6*args.N_emb_dir+3).cuda()
+    models = {'coarse': nerf_coarse}
     nerf_fine = NeRF('fine',
-                    encode_appearance=args.encode_a,
-                    in_channels_a=args.N_a,
-                    encode_transient=args.encode_t,
-                    in_channels_t=args.N_tau,
-                    beta_min=args.beta_min).cuda()
+                     in_channels_xyz=6*args.N_emb_xyz+3,
+                     in_channels_dir=6*args.N_emb_dir+3,
+                     encode_appearance=args.encode_a,
+                     in_channels_a=args.N_a,
+                     encode_transient=args.encode_t,
+                     in_channels_t=args.N_tau,
+                     beta_min=args.beta_min).cuda()
 
     load_ckpt(nerf_coarse, args.ckpt_path, model_name='nerf_coarse')
     load_ckpt(nerf_fine, args.ckpt_path, model_name='nerf_fine')
@@ -136,17 +171,26 @@ if __name__ == "__main__":
     imgs, psnrs = [], []
     dir_name = f'results/{args.dataset_name}/{args.scene_name}'
     os.makedirs(dir_name, exist_ok=True)
+    
 
     for i in tqdm(range(len(dataset))):
         sample = dataset[i]
         rays = sample['rays'].cuda()
-        ts = sample['ts'].cuda()
+        if args.dataset_name == 'phototourism' and args.split == 'test':
+            ts = None
+        else:
+            ts = sample['ts'].cuda()
         results = batched_inference(models, embeddings, rays, ts,
                                     args.N_samples, args.N_importance, args.use_disp,
                                     args.chunk,
-                                    dataset.white_back)
+                                    dataset.white_back,
+                                    **kwargs)
 
-        img_pred = results['rgb_fine'].view(h, w, 3).cpu().numpy()
+        if args.dataset_name == 'blender':
+            w, h = args.img_wh
+        else:
+            w, h = sample['img_wh']
+        img_pred = np.clip(results['rgb_fine'].view(h, w, 3).cpu().numpy(), 0, 1)
         
         img_pred_ = (img_pred*255).astype(np.uint8)
         imgs += [img_pred_]
@@ -157,7 +201,8 @@ if __name__ == "__main__":
             img_gt = rgbs.view(h, w, 3)
             psnrs += [metrics.psnr(img_gt, img_pred).item()]
         
-    imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, fps=30)
+    imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.{args.video_format}'),
+                    imgs, fps=30)
     
     if psnrs:
         mean_psnr = np.mean(psnrs)
