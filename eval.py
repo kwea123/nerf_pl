@@ -123,7 +123,7 @@ if __name__ == "__main__":
                                     args.chunk)
         typ = 'fine' if 'rgb_fine' in results else 'coarse'
 
-        img_pred = results[f'rgb_{typ}'].view(h, w, 3).cpu().numpy()
+        img_pred = np.clip(results[f'rgb_{typ}'].view(h, w, 3).cpu().numpy(), 0, 1)
 
         if args.save_depth:
             depth_pred = results[f'depth_{typ}'].view(h, w).cpu().numpy()
