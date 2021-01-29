@@ -227,7 +227,6 @@ def render_rays(models,
                   # detach so that grad doesn't propogate to weights_coarse from here
 
         z_vals, _ = torch.sort(torch.cat([z_vals, z_vals_], -1), -1)
-                    # values are interleaved actually, so maybe can do better than sort?
 
         xyz_fine_sampled = rays_o.unsqueeze(1) + \
                            rays_d.unsqueeze(1) * z_vals.unsqueeze(2)
