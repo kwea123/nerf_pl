@@ -2,6 +2,7 @@ import torch
 import os
 import numpy as np
 import cv2
+from PIL import Image
 from collections import defaultdict
 from tqdm import tqdm
 import mcubes
@@ -211,8 +212,9 @@ if __name__ == "__main__":
         print('Fusing colors ...')
         for idx in tqdm(range(len(dataset.image_paths))):
             ## read image of this pose
-            image = cv2.imread(dataset.image_paths[idx])[:,:,::-1]
-            image = cv2.resize(image, tuple(args.img_wh))
+            image = Image.open(dataset.image_paths[idx]).convert('RGB')
+            image = image.resize(tuple(args.img_wh), Image.LANCZOS)
+            image = np.array(image)
 
             ## read the camera to world relative pose
             P_c2w = np.concatenate([dataset.poses[idx], np.array([0, 0, 0, 1]).reshape(1, 4)], 0)
