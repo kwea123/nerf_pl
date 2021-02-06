@@ -176,7 +176,9 @@ All my experiments are done with image size 200x200, so theoretically PSNR is ex
 
 See [test_phototourism.ipynb](https://nbviewer.jupyter.org/github/kwea123/nerf_pl/blob/nerfw/test_phototourism.ipynb) for some paper results' reproduction.
 
-(Under development) Use [eval.py](eval.py) to create a flythrough video like what's shown on the authors' project page.
+Use [eval.py](eval.py) ([example](https://github.com/kwea123/nerf_pl/releases/tag/nerfw_branden))to create a flythrough video. You might need to design a camera path to make it look more cool!
+
+![brandenburg_test](https://user-images.githubusercontent.com/11364490/107109627-54f1bd80-6885-11eb-9ab1-74a9d66d8942.gif)
 
 # :warning: Notes on differences with the paper
 
