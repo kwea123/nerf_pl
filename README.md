@@ -207,3 +207,14 @@ We can incorporate *ray tracing* techniques into the volume rendering pipeline, 
 
 ![add](https://user-images.githubusercontent.com/11364490/90312710-92face00-df41-11ea-9eea-10f24849b407.gif)
 ![add2](https://user-images.githubusercontent.com/11364490/90360796-92744b80-e097-11ea-859d-159aa2519375.gif)
+
+# :book: Citation
+If you use (part of) my code or find my work helpful, please consider citing
+```
+@misc{queianchen_nerf,
+  author={Quei-An, Chen},
+  title={Nerf_pl: a pytorch-lightning implementation of NeRF},
+  url={https://github.com/kwea123/nerf_pl/},
+  year={2020},
+}
+```
