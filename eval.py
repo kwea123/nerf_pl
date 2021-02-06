@@ -87,11 +87,6 @@ def batched_inference(models, embeddings,
     B = rays.shape[0]
     results = defaultdict(list)
     for i in range(0, B, chunk):
-        kwargs_ = {}
-        if 'output_transient' in kwargs:
-            kwargs_['output_transient'] = kwargs['output_transient']
-        if 'a_embedded' in kwargs:
-            kwargs_['a_embedded'] = kwargs['a_embedded'][i:i+chunk]
         rendered_ray_chunks = \
             render_rays(models,
                         embeddings,
@@ -105,7 +100,7 @@ def batched_inference(models, embeddings,
                         chunk,
                         white_back,
                         test_time=True,
-                        **kwargs_)
+                        **kwargs)
 
         for k, v in rendered_ray_chunks.items():
             results[k] += [v.cpu()]
@@ -140,16 +135,6 @@ if __name__ == "__main__":
         load_ckpt(embedding_t, args.ckpt_path, model_name='embedding_t')
         embeddings['t'] = embedding_t
 
-    kwargs = {}
-    if args.dataset_name == 'phototourism' and args.split == 'test':
-        # select appearance embedding, hard-coded for each scene
-        if scene == 'brandenburg_gate': # 85572957_6053497857.jpg
-            a_embedded = embedding_a.weight[1123]
-        else:
-            raise NotImplementedError
-        kwargs['a_embedded'] = a_embedded
-        kwargs['output_transient'] = False
-
     nerf_coarse = NeRF('coarse',
                         in_channels_xyz=6*args.N_emb_xyz+3,
                         in_channels_dir=6*args.N_emb_dir+3).cuda()
@@ -171,16 +156,38 @@ if __name__ == "__main__":
     imgs, psnrs = [], []
     dir_name = f'results/{args.dataset_name}/{args.scene_name}'
     os.makedirs(dir_name, exist_ok=True)
-    
+
+    kwargs = {}
+    # define testing poses and appearance index for phototourism
+    if args.dataset_name == 'phototourism' and args.split == 'test':
+        # define testing camera intrinsics (hard-coded, feel free to change)
+        dataset.test_img_w, dataset.test_img_h = args.img_wh
+        dataset.test_focal = dataset.test_img_w/2/np.tan(np.pi/6) # fov=60 degrees
+        dataset.test_K = np.array([[dataset.test_focal, 0, dataset.test_img_w/2],
+                                   [0, dataset.test_focal, dataset.test_img_h/2],
+                                   [0,                  0,                    1]])
+        if scene == 'brandenburg_gate':
+            # select appearance embedding, hard-coded for each scene
+            dataset.test_appearance_idx = 1123 # 85572957_6053497857.jpg
+            N_frames = 30*4
+            dx = np.linspace(0, 0.03, N_frames)
+            dy = np.linspace(0, -0.1, N_frames)
+            dz = np.linspace(0, 0.5, N_frames)
+            # define poses
+            dataset.poses_test = np.tile(dataset.poses_dict[1123], (N_frames, 1, 1))
+            for i in range(N_frames):
+                dataset.poses_test[i, 0, 3] += dx[i]
+                dataset.poses_test[i, 1, 3] += dy[i]
+                dataset.poses_test[i, 2, 3] += dz[i]
+        else:
+            raise NotImplementedError
+        kwargs['output_transient'] = False
 
     for i in tqdm(range(len(dataset))):
         sample = dataset[i]
-        rays = sample['rays'].cuda()
-        if args.dataset_name == 'phototourism' and args.split == 'test':
-            ts = None
-        else:
-            ts = sample['ts'].cuda()
-        results = batched_inference(models, embeddings, rays, ts,
+        rays = sample['rays']
+        ts = sample['ts']
+        results = batched_inference(models, embeddings, rays.cuda(), ts.cuda(),
                                     args.N_samples, args.N_importance, args.use_disp,
                                     args.chunk,
                                     dataset.white_back,
@@ -190,6 +197,7 @@ if __name__ == "__main__":
             w, h = args.img_wh
         else:
             w, h = sample['img_wh']
+        
         img_pred = np.clip(results['rgb_fine'].view(h, w, 3).cpu().numpy(), 0, 1)
         
         img_pred_ = (img_pred*255).astype(np.uint8)

@@ -180,10 +180,8 @@ class PhototourismDataset(Dataset):
             self.val_id = self.img_ids_train[0]
 
         else: # for testing, create a parametric rendering path
-            # define also testing camera intrinsics
-            self.test_img_w, self.test_img_h = 320, 240
-            self.test_K = np.eye(3) # ???
-            self.poses_test = [0] # (N, 3, 4)
+            # test poses and appearance index are defined in eval.py
+            pass
 
     def define_transforms(self):
         self.transform = T.ToTensor()
@@ -233,6 +231,7 @@ class PhototourismDataset(Dataset):
             sample['img_wh'] = torch.LongTensor([img_w, img_h])
 
         else:
+            sample = {}
             sample['c2w'] = c2w = torch.FloatTensor(self.poses_test[idx])
             directions = get_ray_directions(self.test_img_h, self.test_img_w, self.test_K)
             rays_o, rays_d = get_rays(directions, c2w)
@@ -242,6 +241,7 @@ class PhototourismDataset(Dataset):
                               far*torch.ones_like(rays_o[:, :1])],
                               1)
             sample['rays'] = rays
-            sample['img_wh'] = torch.LongTensor([img_w, img_h])
+            sample['ts'] = self.test_appearance_idx * torch.ones(len(rays), dtype=torch.long)
+            sample['img_wh'] = torch.LongTensor([self.test_img_w, self.test_img_h])
 
         return sample
