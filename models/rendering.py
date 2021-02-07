@@ -154,7 +154,7 @@ def render_rays(models,
         depth_map = reduce(weights*z_vals, 'n1 n2 -> n1', 'sum')
 
         if white_back:
-            rgb_map = rgb_map + 1-weights_sum.unsqueeze(-1)
+            rgb_map += 1-weights_sum.unsqueeze(1)
 
         results[f'rgb_{typ}'] = rgb_map
         results[f'depth_{typ}'] = depth_map
