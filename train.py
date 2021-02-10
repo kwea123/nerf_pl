@@ -32,6 +32,7 @@ class NeRFSystem(LightningModule):
 
         self.loss = loss_dict['nerfw'](coef=1)
 
+        self.models_to_train = []
         self.embedding_xyz = PosEmbedding(hparams.N_emb_xyz-1, hparams.N_emb_xyz)
         self.embedding_dir = PosEmbedding(hparams.N_emb_dir-1, hparams.N_emb_dir)
         self.embeddings = {'xyz': self.embedding_xyz,
@@ -40,9 +41,11 @@ class NeRFSystem(LightningModule):
         if hparams.encode_a:
             self.embedding_a = torch.nn.Embedding(hparams.N_vocab, hparams.N_a)
             self.embeddings['a'] = self.embedding_a
+            self.models_to_train += [self.embedding_a]
         if hparams.encode_t:
             self.embedding_t = torch.nn.Embedding(hparams.N_vocab, hparams.N_tau)
             self.embeddings['t'] = self.embedding_t
+            self.models_to_train += [self.embedding_t]
 
         self.nerf_coarse = NeRF('coarse',
                                 in_channels_xyz=6*hparams.N_emb_xyz+3,
@@ -58,6 +61,7 @@ class NeRFSystem(LightningModule):
                                   in_channels_t=hparams.N_tau,
                                   beta_min=hparams.beta_min)
             self.models['fine'] = self.nerf_fine
+        self.models_to_train += [self.models]
 
     def get_progress_bar_dict(self):
         items = super().get_progress_bar_dict()
@@ -103,7 +107,7 @@ class NeRFSystem(LightningModule):
         self.val_dataset = dataset(split='val', **kwargs)
 
     def configure_optimizers(self):
-        self.optimizer = get_optimizer(self.hparams, self.models)
+        self.optimizer = get_optimizer(self.hparams, self.models_to_train)
         scheduler = get_scheduler(self.hparams, self.optimizer)
         return [self.optimizer], [scheduler]
 
