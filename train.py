@@ -1,4 +1,4 @@
-import os, sys
+import os
 from opt import get_opts
 import torch
 from collections import defaultdict
