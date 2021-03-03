@@ -78,7 +78,7 @@ def batched_inference(models, embeddings,
                         test_time=True)
 
         for k, v in rendered_ray_chunks.items():
-            results[k] += [v]
+            results[k] += [v.cpu()]
 
     for k, v in results.items():
         results[k] = torch.cat(v, 0)
