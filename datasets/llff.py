@@ -7,6 +7,8 @@ from PIL import Image
 from torchvision import transforms as T
 
 from .ray_utils import *
+from .colmap_utils import \
+    read_cameras_binary, read_images_binary, read_points3d_binary
 
 
 def normalize(v):
@@ -174,30 +176,53 @@ class LLFFDataset(Dataset):
         self.white_back = False
 
     def read_meta(self):
-        poses_bounds = np.load(os.path.join(self.root_dir,
-                                            'poses_bounds.npy')) # (N_images, 17)
-        self.image_paths = sorted(glob.glob(os.path.join(self.root_dir, 'images/*')))
-                        # load full resolution image then resize
-        if self.split in ['train', 'val']:
-            assert len(poses_bounds) == len(self.image_paths), \
-                'Mismatch between number of images and number of poses! Please rerun COLMAP!'
-
-        poses = poses_bounds[:, :15].reshape(-1, 3, 5) # (N_images, 3, 5)
-        self.bounds = poses_bounds[:, -2:] # (N_images, 2)
-
         # Step 1: rescale focal length according to training resolution
-        H, W, self.focal = poses[0, :, -1] # original intrinsics, same for all images
-        # assert H*self.img_wh[0] == W*self.img_wh[1], \
-        #     f'You must set @img_wh to have the same aspect ratio as ({W}, {H}) !'
-        
-        self.focal *= self.img_wh[0]/W
+        camdata = read_cameras_binary(os.path.join(self.root_dir, 'sparse/0/cameras.bin'))
+        H = camdata[1].height
+        W = camdata[1].width
+        self.focal = camdata[1].params[0] * self.img_wh[0]/W
 
         # Step 2: correct poses
-        # Original poses has rotation in form "down right back", change to "right up back"
+        # read extrinsics (of successfully reconstructed images)
+        imdata = read_images_binary(os.path.join(self.root_dir, 'sparse/0/images.bin'))
+        perm = np.argsort([imdata[k].name for k in imdata])
+        # read successfully reconstructed images and ignore others
+        self.image_paths = [os.path.join(self.root_dir, 'images', name)
+                            for name in sorted([imdata[k].name for k in imdata])]
+        w2c_mats = []
+        bottom = np.array([0, 0, 0, 1.]).reshape(1, 4)
+        for k in imdata:
+            im = imdata[k]
+            R = im.qvec2rotmat()
+            t = im.tvec.reshape(3, 1)
+            w2c_mats += [np.concatenate([np.concatenate([R, t], 1), bottom], 0)]
+        w2c_mats = np.stack(w2c_mats, 0)
+        poses = np.linalg.inv(w2c_mats)[:, :3] # (N_images, 3, 4) cam2world matrices
+        
+        # read bounds
+        self.bounds = np.zeros((len(poses), 2)) # (N_images, 2)
+        pts3d = read_points3d_binary(os.path.join(self.root_dir, 'sparse/0/points3D.bin'))
+        pts_world = np.zeros((1, 3, len(pts3d))) # (1, 3, N_points)
+        visibilities = np.zeros((len(poses), len(pts3d))) # (N_images, N_points)
+        for i, k in enumerate(pts3d):
+            pts_world[0, :, i] = pts3d[k].xyz
+            for j in pts3d[k].image_ids:
+                visibilities[j-1, i] = 1
+        # calculate each point's depth w.r.t. each camera
+        # it's the dot product of "points - camera center" and "camera frontal axis"
+        depths = ((pts_world-poses[..., 3:4])*poses[..., 2:3]).sum(1) # (N_images, N_points)
+        for i in range(len(poses)):
+            visibility_i = visibilities[i]
+            zs = depths[i][visibility_i==1]
+            self.bounds[i] = [np.percentile(zs, 0.1), np.percentile(zs, 99.9)]
+        # permute the matrices to increasing order
+        poses = poses[perm]
+        self.bounds = self.bounds[perm]
+        
+        # COLMAP poses has rotation in form "right down front", change to "right up back"
         # See https://github.com/bmild/nerf/issues/34
-        poses = np.concatenate([poses[..., 1:2], -poses[..., :1], poses[..., 2:4]], -1)
-                # (N_images, 3, 4) exclude H, W, focal
-        self.poses, self.pose_avg = center_poses(poses)
+        poses = np.concatenate([poses[..., 0:1], -poses[..., 1:3], poses[..., 3:4]], -1)
+        self.poses, _ = center_poses(poses)
         distances_from_center = np.linalg.norm(self.poses[..., 3], axis=1)
         val_idx = np.argmin(distances_from_center) # choose val image as the closest to
                                                    # center image
