@@ -249,9 +249,9 @@ class LLFFDataset(Dataset):
                 c2w = torch.FloatTensor(self.poses[i])
 
                 img = Image.open(image_path).convert('RGB')
-                assert img.size[1]*self.img_wh[0] == img.size[0]*self.img_wh[1], \
-                    f'''{image_path} has different aspect ratio than img_wh, 
-                        please check your data!'''
+                # assert img.size[1]*self.img_wh[0] == img.size[0]*self.img_wh[1], \
+                #     f'''{image_path} has different aspect ratio than img_wh, 
+                #         please check your data!'''
                 img = img.resize(self.img_wh, Image.LANCZOS)
                 img = self.transform(img) # (3, h, w)
                 img = img.view(3, -1).permute(1, 0) # (h*w, 3) RGB
