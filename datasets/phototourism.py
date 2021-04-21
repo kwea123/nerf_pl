@@ -52,6 +52,8 @@ class PhototourismDataset(Dataset):
         if self.use_cache:
             with open(os.path.join(self.root_dir, f'cache/img_ids.pkl'), 'rb') as f:
                 self.img_ids = pickle.load(f)
+            with open(os.path.join(self.root_dir, f'cache/img_to_cam_id.pkl'), 'rb') as f:
+                self.image_to_cam = pickle.load(f)
             with open(os.path.join(self.root_dir, f'cache/image_paths.pkl'), 'rb') as f:
                 self.image_paths = pickle.load(f)
         else:
