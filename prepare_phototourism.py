@@ -23,6 +23,8 @@ if __name__ == '__main__':
     # save img ids
     with open(os.path.join(args.root_dir, f'cache/img_ids.pkl'), 'wb') as f:
         pickle.dump(dataset.img_ids, f, pickle.HIGHEST_PROTOCOL)
+    with open(os.path.join(args.root_dir, f'cache/img_to_cam_id.pkl'), 'wb') as f:
+        pickle.dump(dataset.image_to_cam, f, pickle.HIGHEST_PROTOCOL)
     # save img paths
     with open(os.path.join(args.root_dir, f'cache/image_paths.pkl'), 'wb') as f:
         pickle.dump(dataset.image_paths, f, pickle.HIGHEST_PROTOCOL)
