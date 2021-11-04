@@ -210,6 +210,11 @@ We can incorporate *ray tracing* techniques into the volume rendering pipeline, 
 ![add](https://user-images.githubusercontent.com/11364490/90312710-92face00-df41-11ea-9eea-10f24849b407.gif)
 ![add2](https://user-images.githubusercontent.com/11364490/90360796-92744b80-e097-11ea-859d-159aa2519375.gif)
 
+With my integration in Unity, I can realize realistic mixed reality photos (note my character casts shadow on the scene, **zero** post- image editing required):
+![defer](https://user-images.githubusercontent.com/11364490/140264589-295acebe-8ace-4d61-b871-26eb8ae10ab0.png)
+![defer2](https://user-images.githubusercontent.com/11364490/140264596-59daebe5-b88d-48e7-82bd-5ccaaff2283f.png)
+BTW, I would like to visit the museum one day...
+
 # :book: Citation
 If you use (part of) my code or find my work helpful, please consider citing
 ```
