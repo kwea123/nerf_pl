@@ -35,6 +35,10 @@ def get_opts():
     parser.add_argument('--spheric_poses', default=False, action="store_true",
                         help='whether images are taken in spheric poses (for llff)')
 
+    parser.add_argument('--N_emb_xyz', type=int, default=10,
+                        help='number of frequencies in xyz positional encoding')
+    parser.add_argument('--N_emb_dir', type=int, default=4,
+                        help='number of frequencies in dir positional encoding')
     parser.add_argument('--N_samples', type=int, default=64,
                         help='number of coarse samples')
     parser.add_argument('--N_importance', type=int, default=128,
@@ -96,9 +100,10 @@ if __name__ == "__main__":
         kwargs['spheric_poses'] = args.spheric_poses
     dataset = dataset_dict[args.dataset_name](**kwargs)
 
-    embedding_xyz = Embedding(3, 10)
-    embedding_dir = Embedding(3, 4)
-    nerf_coarse = NeRF()
+    embedding_xyz = Embedding(args.N_emb_xyz)
+    embedding_dir = Embedding(args.N_emb_dir)
+    nerf_coarse = NeRF(in_channels_xyz=6*args.N_emb_xyz+3,
+                       in_channels_dir=6*args.N_emb_dir+3)
     load_ckpt(nerf_coarse, args.ckpt_path, model_name='nerf_coarse')
     nerf_coarse.cuda().eval()
 
@@ -106,7 +111,8 @@ if __name__ == "__main__":
     embeddings = {'xyz': embedding_xyz, 'dir': embedding_dir}
 
     if args.N_importance > 0:
-        nerf_fine = NeRF()
+        nerf_fine = NeRF(in_channels_xyz=6*args.N_emb_xyz+3,
+                         in_channels_dir=6*args.N_emb_dir+3)
         load_ckpt(nerf_fine, args.ckpt_path, model_name='nerf_fine')
         nerf_fine.cuda().eval()
         models['fine'] = nerf_fine

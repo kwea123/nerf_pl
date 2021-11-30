@@ -1,4 +1,6 @@
 import os
+
+from pytorch_lightning.accelerators import accelerator
 from opt import get_opts
 import torch
 from collections import defaultdict
@@ -20,36 +22,34 @@ from losses import loss_dict
 from metrics import *
 
 # pytorch-lightning
-from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning import LightningModule, Trainer
-from pytorch_lightning.loggers import TestTubeLogger
+from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
+from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.plugins import DDPPlugin
 
 
 class NeRFSystem(LightningModule):
     def __init__(self, hparams):
-        super(NeRFSystem, self).__init__()
-        self.hparams = hparams
+        super().__init__()
+        self.save_hyperparameters(hparams)
 
         self.loss = loss_dict['color'](coef=1)
 
-        self.embedding_xyz = Embedding(3, 10)
-        self.embedding_dir = Embedding(3, 4)
+        self.embedding_xyz = Embedding(hparams.N_emb_xyz)
+        self.embedding_dir = Embedding(hparams.N_emb_dir)
         self.embeddings = {'xyz': self.embedding_xyz,
                            'dir': self.embedding_dir}
 
-        self.nerf_coarse = NeRF()
+        self.nerf_coarse = NeRF(in_channels_xyz=6*hparams.N_emb_xyz+3,
+                                in_channels_dir=6*hparams.N_emb_dir+3)
         self.models = {'coarse': self.nerf_coarse}
         load_ckpt(self.nerf_coarse, hparams.weight_path, 'nerf_coarse')
 
         if hparams.N_importance > 0:
-            self.nerf_fine = NeRF()
+            self.nerf_fine = NeRF(in_channels_xyz=6*hparams.N_emb_xyz+3,
+                                  in_channels_dir=6*hparams.N_emb_dir+3)
             self.models['fine'] = self.nerf_fine
             load_ckpt(self.nerf_fine, hparams.weight_path, 'nerf_fine')
-
-    def get_progress_bar_dict(self):
-        items = super().get_progress_bar_dict()
-        items.pop("v_num", None)
-        return items
 
     def forward(self, rays):
         """Do batched inference on rays using chunk."""
@@ -151,30 +151,29 @@ class NeRFSystem(LightningModule):
 
 def main(hparams):
     system = NeRFSystem(hparams)
-    checkpoint_callback = \
-        ModelCheckpoint(filepath=os.path.join(f'ckpts/{hparams.exp_name}',
-                                               '{epoch:d}'),
-                        monitor='val/psnr',
-                        mode='max',
-                        save_top_k=5)
+    ckpt_cb = ModelCheckpoint(dirpath=f'ckpts/{hparams.exp_name}',
+                              filename='{epoch:d}',
+                              monitor='val/psnr',
+                              mode='max',
+                              save_top_k=5)
+    pbar = TQDMProgressBar(refresh_rate=1)
+    callbacks = [ckpt_cb, pbar]
 
-    logger = TestTubeLogger(save_dir="logs",
-                            name=hparams.exp_name,
-                            debug=False,
-                            create_git_tag=False,
-                            log_graph=False)
+    logger = TensorBoardLogger(save_dir="logs",
+                               name=hparams.exp_name,
+                               default_hp_metric=False)
 
     trainer = Trainer(max_epochs=hparams.num_epochs,
-                      checkpoint_callback=checkpoint_callback,
+                      callbacks=callbacks,
                       resume_from_checkpoint=hparams.ckpt_path,
                       logger=logger,
-                      weights_summary=None,
-                      progress_bar_refresh_rate=1,
-                      gpus=hparams.num_gpus,
-                      accelerator='ddp' if hparams.num_gpus>1 else None,
+                      enable_model_summary=False,
+                      accelerator='auto',
+                      devices=hparams.num_gpus,
                       num_sanity_val_steps=1,
                       benchmark=True,
-                      profiler="simple" if hparams.num_gpus==1 else None)
+                      profiler="simple" if hparams.num_gpus==1 else None,
+                      strategy=DDPPlugin(find_unused_parameters=False) if hparams.num_gpus>1 else None)
 
     trainer.fit(system)
 
