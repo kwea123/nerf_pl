@@ -4,7 +4,7 @@ pytorch-lightning==1.5.2
 einops==0.3.2
 kornia==0.6.1
 opencv-python==4.5.4.58
-matplotlib==3.3.4
+matplotlib==3.5.0
 jupyter
 imageio==2.10.4
 imageio-ffmpeg==0.4.5
