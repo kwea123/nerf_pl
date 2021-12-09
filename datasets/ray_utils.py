@@ -40,7 +40,7 @@ def get_rays(directions, c2w):
     """
     # Rotate ray directions from camera coordinate to the world coordinate
     rays_d = directions @ c2w[:, :3].T # (H, W, 3)
-    rays_d = rays_d / torch.norm(rays_d, dim=-1, keepdim=True)
+    rays_d /= torch.norm(rays_d, dim=-1, keepdim=True)
     # The origin of all rays is the camera origin in world coordinate
     rays_o = c2w[:, 3].expand(rays_d.shape) # (H, W, 3)
 
