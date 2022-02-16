@@ -142,8 +142,8 @@ def render_rays(models,
             transient_alphas = 1-torch.exp(-deltas*transient_sigmas)
             alphas = 1-torch.exp(-deltas*(static_sigmas+transient_sigmas))
         else:
-            noise = torch.randn_like(static_sigmas) * noise_std
-            alphas = 1-torch.exp(-deltas*torch.relu(static_sigmas+noise))
+#             noise = torch.randn_like(static_sigmas) * noise_std
+            alphas = 1-torch.exp(-deltas*static_sigmas+noise)
 
         alphas_shifted = \
             torch.cat([torch.ones_like(alphas[:, :1]), 1-alphas], -1) # [1, 1-a1, 1-a2, ...]
