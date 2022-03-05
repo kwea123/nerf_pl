@@ -20,6 +20,8 @@ The code is largely based on NeRF implementation (see master or dev branch), the
     
 # :key: Training
 
+#### Update: There is a [difference](https://github.com/kwea123/nerf_pl/issues/130) between the paper: I didn't add the appearance embedding in the coarse model while it should. Please change [this line](https://github.com/kwea123/nerf_pl/blob/nerfw/models/nerf.py#L65) to `self.encode_appearance = encode_appearance` to align with the paper.
+
 ## Blender
 
 <details>
