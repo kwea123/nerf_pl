@@ -52,13 +52,18 @@ class PhototourismDataset(Dataset):
         if self.use_cache:
             with open(os.path.join(self.root_dir, f'cache/img_ids.pkl'), 'rb') as f:
                 self.img_ids = pickle.load(f)
+            with open(os.path.join(self.root_dir, f'cache/img_to_cam_id.pkl'), 'rb') as f:
+                self.image_to_cam = pickle.load(f)
             with open(os.path.join(self.root_dir, f'cache/image_paths.pkl'), 'rb') as f:
                 self.image_paths = pickle.load(f)
         else:
             imdata = read_images_binary(os.path.join(self.root_dir, 'dense/sparse/images.bin'))
             img_path_to_id = {}
+            self.image_to_cam = {} # {id: image id}
+
             for v in imdata.values():
                 img_path_to_id[v.name] = v.id
+                self.image_to_cam[v.id] = v.camera_id
             self.img_ids = []
             self.image_paths = {} # {id: filename}
             for filename in list(self.files['filename']):
@@ -75,7 +80,9 @@ class PhototourismDataset(Dataset):
             camdata = read_cameras_binary(os.path.join(self.root_dir, 'dense/sparse/cameras.bin'))
             for id_ in self.img_ids:
                 K = np.zeros((3, 3), dtype=np.float32)
-                cam = camdata[id_]
+
+                cam_id = self.image_to_cam[id_]
+                cam = camdata[cam_id]
                 img_w, img_h = int(cam.params[2]*2), int(cam.params[3]*2)
                 img_w_, img_h_ = img_w//self.img_downscale, img_h//self.img_downscale
                 K[0, 0] = cam.params[0]*img_w_/img_w # fx
@@ -83,7 +90,7 @@ class PhototourismDataset(Dataset):
                 K[0, 2] = cam.params[2]*img_w_/img_w # cx
                 K[1, 2] = cam.params[3]*img_h_/img_h # cy
                 K[2, 2] = 1
-                self.Ks[id_] = K
+                self.Ks[cam_id] = K
 
         # Step 3: read c2w poses (of the images in tsv file only) and correct the order
         if self.use_cache:
@@ -163,7 +170,7 @@ class PhototourismDataset(Dataset):
                     img = img.view(3, -1).permute(1, 0) # (h*w, 3) RGB
                     self.all_rgbs += [img]
                     
-                    directions = get_ray_directions(img_h, img_w, self.Ks[id_])
+                    directions = get_ray_directions(img_h, img_w, self.Ks[self.image_to_cam[id_]])
                     rays_o, rays_d = get_rays(directions, c2w)
                     rays_t = id_ * torch.ones(len(rays_o), 1)
 
@@ -220,7 +227,7 @@ class PhototourismDataset(Dataset):
             img = img.view(3, -1).permute(1, 0) # (h*w, 3) RGB
             sample['rgbs'] = img
 
-            directions = get_ray_directions(img_h, img_w, self.Ks[id_])
+            directions = get_ray_directions(img_h, img_w, self.Ks[self.image_to_cam[id_]])
             rays_o, rays_d = get_rays(directions, c2w)
             rays = torch.cat([rays_o, rays_d,
                               self.nears[id_]*torch.ones_like(rays_o[:, :1]),
