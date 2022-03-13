@@ -103,8 +103,8 @@ if __name__ == "__main__":
         kwargs['split'] = 'train'
     dataset = dataset_dict[args.dataset_name](**kwargs)
 
-    embedding_xyz = Embedding(3, 10)
-    embedding_dir = Embedding(3, 4)
+    embedding_xyz = Embedding(10)
+    embedding_dir = Embedding(4)
     embeddings = {'xyz': embedding_xyz, 'dir': embedding_dir}
     nerf_fine = NeRF()
     load_ckpt(nerf_fine, args.ckpt_path, model_name='nerf_fine')
