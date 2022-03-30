@@ -3,7 +3,7 @@ import torch
 from torch.optim import SGD, Adam
 import torch_optimizer as optim
 # scheduler
-from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
+from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR, LambdaLR
 from .warmup_scheduler import GradualWarmupScheduler
 
 from .visualization import *
