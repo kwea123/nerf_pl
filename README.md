@@ -1,6 +1,6 @@
 # nerf_pl
 
-### Update: NVIDIA just open-sourced a lightning-fast version of NeRF: [NGP](https://github.com/NVlabs/instant-ngp). I also learnt cuda recently, and will open source my pytorch implementation [here](https://github.com/kwea123/ngp_pl).
+### Update: NVIDIA just open-sourced a lightning-fast version of NeRF: [NGP](https://github.com/NVlabs/instant-ngp). I also learnt cuda recently and opened source my pytorch implementation [here](https://github.com/kwea123/ngp_pl). This version is ~100x faster than this repo with also better quality!
 
 ### Update: an improved [NSFF](https://www.cs.cornell.edu/~zl548/NSFF/) implementation to handle dynamic scene is [open](https://github.com/kwea123/nsff_pl)!
 
