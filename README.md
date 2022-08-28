@@ -1,14 +1,12 @@
 # nerf_pl
 
-### Update: NVIDIA just open-sourced a lightning-fast version of NeRF: [NGP](https://github.com/NVlabs/instant-ngp). I also learnt cuda recently and opened source my pytorch implementation [here](https://github.com/kwea123/ngp_pl). This version is ~100x faster than this repo with also better quality!
+### Update: NVIDIA open-sourced a lightning-fast version of NeRF: [NGP](https://github.com/NVlabs/instant-ngp). I re-implemented in pytorch [here](https://github.com/kwea123/ngp_pl). This version is ~100x faster than this repo with also better quality!
 
 ### Update: an improved [NSFF](https://www.cs.cornell.edu/~zl548/NSFF/) implementation to handle dynamic scene is [open](https://github.com/kwea123/nsff_pl)!
 
 ### Update: [NeRF-W](https://nerf-w.github.io/) (NeRF in the Wild) implementation is added to [nerfw](https://github.com/kwea123/nerf_pl/tree/nerfw) branch!
 
-### Update: The lastest code (using the latest libraries) will be updated to [dev](https://github.com/kwea123/nerf_pl/tree/dev) branch. The master branch remains to support the colab files. If you don't use colab, it is recommended to switch to dev branch.
-
-### Only issues of the dev and nerfw branch will be considered currently.
+### Update: The lastest code (using the latest libraries) will be updated to [dev](https://github.com/kwea123/nerf_pl/tree/dev) branch. The master branch remains to support the colab files. If you don't use colab, it is recommended to switch to dev branch. Only issues of the dev and nerfw branch will be considered currently.
 
 ### :gem: [**Project page**](https://kwea123.github.io/nerf_pl/) (live demo!)
 
