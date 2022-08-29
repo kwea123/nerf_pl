@@ -14,7 +14,7 @@ Unofficial implementation of [NeRF](https://arxiv.org/pdf/2003.08934.pdf) (Neura
 
 Official implementation: [nerf](https://github.com/bmild/nerf) .. Reference pytorch implementation: [nerf-pytorch](https://github.com/yenchenlin/nerf-pytorch)
 
-### Recommend to read: A detailed NeRF extension list: [awesome-NeRF](https://github.com/yenchenlin/awesome-NeRF)
+### Recommend to read: A detailed NeRF extension list: [awesome-NeRF](https://github.com/yenchenlin/awesome-NeRF) and NeRFs/implicit representations works related to Robotics [Awesome-Implicit-NeRF-Robotics](https://github.com/zubair-irshad/Awesome-Implicit-NeRF-Robotics)
 
 ## :milky_way: Features
 
