@@ -14,7 +14,7 @@ def sample_pdf(bins, weights, N_importance, det=False, eps=1e-5):
         det: deterministic or not
         eps: a small number to prevent division by zero
     Outputs:
-        samples: the sampled samples
+        samples: (N_rays, N_importance) the sampled samples
     """
     N_rays, N_samples_ = weights.shape
     weights = weights + eps # prevent division by zero (don't do inplace op!)
