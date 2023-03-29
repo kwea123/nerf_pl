@@ -26,7 +26,7 @@ from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.plugins import DDPPlugin
-
+import cv2
 
 class NeRFSystem(LightningModule):
     def __init__(self, hparams):
