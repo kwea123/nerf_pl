@@ -142,7 +142,7 @@ if __name__ == "__main__":
             img_gt = rgbs.view(h, w, 3)
             psnrs += [metrics.psnr(img_gt, img_pred).item()]
         
-    imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, fps=30)
+    imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, duration=30)
     
     if psnrs:
         mean_psnr = np.mean(psnrs)
